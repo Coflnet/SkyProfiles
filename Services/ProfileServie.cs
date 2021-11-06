@@ -20,7 +20,12 @@ namespace Sky.PlayerInfo.Service
 
         public async Task<Data> GetProfileData(string playerId, string profileId)
         {
-            return await GetOrLoad<Data>(GetKey("data",profileId),playerId);
+            return await GetOrLoad<Data>(GetKey("data", profileId), playerId);
+        }
+
+        public async Task<Root> GetProfiles(string playerId)
+        {
+            return await GetOrLoad<Root>("u" + playerId, playerId);
         }
 
         private async Task GetProfileStats(string uuid)
@@ -63,9 +68,9 @@ namespace Sky.PlayerInfo.Service
         public async Task<Root> GetFullResponse(string uuid)
         {
             var response = await client.ExecuteAsync(new RestRequest($"/profile/{uuid}"));
+            Console.WriteLine(response.Content);
             return JsonSerializer.Deserialize<Root>(response.Content);
         }
     }
-
 
 }

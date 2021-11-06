@@ -31,6 +31,13 @@ namespace Sky.PlayerInfo.Controllers
         }
 
         [HttpGet]
+        [Route("/profiles/{userId}")]
+        public Task<Root> GetProfiles(string userId)
+        {
+            return profileServie.GetProfiles(userId);
+        }
+
+        [HttpGet]
         [Route("{userId}/{profileId}/data")]
         public Task<Data> GetProfileData(string userId, string profileId)
         {

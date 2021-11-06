@@ -45,16 +45,16 @@ namespace Sky.PlayerInfo
                 options.Providers.Add<GzipCompressionProvider>();
                 options.MimeTypes =
                     ResponseCompressionDefaults.MimeTypes.Concat(
-                        new[] { "application/json" });
+                        new [] { "application/json" });
             });
-            
+
             services.AddSingleton<ITracer>(serviceProvider =>
             {
                 ILoggerFactory loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
                 IConfiguration iConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
 
                 Jaeger.Configuration.SenderConfiguration.DefaultSenderResolver = new SenderResolver(loggerFactory)
-                        .RegisterSenderFactory<ThriftSenderFactory>();
+                    .RegisterSenderFactory<ThriftSenderFactory>();
 
                 var samplingRate = 0.10d;
                 var lowerBoundInSeconds = 30d;
@@ -78,9 +78,13 @@ namespace Sky.PlayerInfo
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SkyPlayerInfo v1"));
             }
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.RoutePrefix = "api";
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "SkyPlayerInfo v1");
+            });
 
             app.UseHttpsRedirection();
 
