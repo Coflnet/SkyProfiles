@@ -31,7 +31,7 @@ namespace Sky.PlayerInfo.Controllers
         }
 
         [HttpGet]
-        [Route("/api/profiles/{userId}")]
+        [Route("{userId}")]
         public Task<Root> GetProfiles(string userId)
         {
             return profileServie.GetProfiles(userId);
