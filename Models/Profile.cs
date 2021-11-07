@@ -9594,10 +9594,10 @@ namespace Sky.PlayerInfo.Models
         public double MagicFind { get; set; }
 
         [JsonPropertyName("defense")]
-        public int Defense { get; set; }
+        public double Defense { get; set; }
 
         [JsonPropertyName("health")]
-        public int Health { get; set; }
+        public double Health { get; set; }
     }
 
     public class PetScoreBonus
