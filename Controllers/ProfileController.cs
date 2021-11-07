@@ -10,7 +10,7 @@ using Sky.PlayerInfo.Service;
 namespace Sky.PlayerInfo.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ProfileController : ControllerBase
     {
 
@@ -31,7 +31,7 @@ namespace Sky.PlayerInfo.Controllers
         }
 
         [HttpGet]
-        [Route("/profiles/{userId}")]
+        [Route("/api/profiles/{userId}")]
         public Task<Root> GetProfiles(string userId)
         {
             return profileServie.GetProfiles(userId);
