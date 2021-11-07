@@ -16021,52 +16021,52 @@ namespace Sky.PlayerInfo.Models
         public long SelectedSongEpoch { get; set; }
 
         [JsonPropertyName("song_hymn_joy_best_completion")]
-        public int SongHymnJoyBestCompletion { get; set; }
+        public double SongHymnJoyBestCompletion { get; set; }
 
         [JsonPropertyName("song_hymn_joy_completions")]
-        public int SongHymnJoyCompletions { get; set; }
+        public double SongHymnJoyCompletions { get; set; }
 
         [JsonPropertyName("song_hymn_joy_perfect_completions")]
-        public int SongHymnJoyPerfectCompletions { get; set; }
+        public double SongHymnJoyPerfectCompletions { get; set; }
 
         [JsonPropertyName("song_frere_jacques_best_completion")]
         public double SongFrereJacquesBestCompletion { get; set; }
 
         [JsonPropertyName("song_frere_jacques_completions")]
-        public int SongFrereJacquesCompletions { get; set; }
+        public double SongFrereJacquesCompletions { get; set; }
 
         [JsonPropertyName("song_amazing_grace_completions")]
-        public int SongAmazingGraceCompletions { get; set; }
+        public double SongAmazingGraceCompletions { get; set; }
 
         [JsonPropertyName("song_amazing_grace_best_completion")]
-        public int SongAmazingGraceBestCompletion { get; set; }
+        public double SongAmazingGraceBestCompletion { get; set; }
 
         [JsonPropertyName("song_amazing_grace_perfect_completions")]
-        public int SongAmazingGracePerfectCompletions { get; set; }
+        public double SongAmazingGracePerfectCompletions { get; set; }
 
-        [JsonPropertyName("song_brahms_best_completion")]
-        public int SongBrahmsBestCompletion { get; set; }
+        [JsonPropertyName("s")]
+        public double SongBrahmsBestCompletion { get; set; }
 
         [JsonPropertyName("song_brahms_completions")]
-        public int SongBrahmsCompletions { get; set; }
+        public double SongBrahmsCompletions { get; set; }
 
         [JsonPropertyName("song_brahms_perfect_completions")]
-        public int SongBrahmsPerfectCompletions { get; set; }
+        public double SongBrahmsPerfectCompletions { get; set; }
 
         [JsonPropertyName("song_happy_birthday_best_completion")]
-        public int SongHappyBirthdayBestCompletion { get; set; }
+        public double SongHappyBirthdayBestCompletion { get; set; }
 
         [JsonPropertyName("song_happy_birthday_completions")]
-        public int SongHappyBirthdayCompletions { get; set; }
+        public double SongHappyBirthdayCompletions { get; set; }
 
         [JsonPropertyName("song_happy_birthday_perfect_completions")]
-        public int SongHappyBirthdayPerfectCompletions { get; set; }
+        public double SongHappyBirthdayPerfectCompletions { get; set; }
 
         [JsonPropertyName("song_greensleeves_best_completion")]
         public double SongGreensleevesBestCompletion { get; set; }
 
         [JsonPropertyName("song_greensleeves_completions")]
-        public int SongGreensleevesCompletions { get; set; }
+        public double SongGreensleevesCompletions { get; set; }
     }
 
     public class JadeCrystal
