@@ -11674,7 +11674,7 @@ namespace Sky.PlayerInfo.Models
         public double SlayerWeight { get; set; }
 
         [JsonPropertyName("weight")]
-        public double Weight { get; set; }
+        public object Weight { get; set; }
 
         [JsonPropertyName("current_area")]
         public string CurrentArea { get; set; }

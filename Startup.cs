@@ -25,6 +25,8 @@ namespace Sky.PlayerInfo
 
         public IConfiguration Configuration { get; }
 
+        private static string CORS_POLICY = "default";
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -32,7 +34,11 @@ namespace Sky.PlayerInfo
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "SkyPlayerInfo", Version = "v1" });
+                c.SwaggerDoc("v0", new OpenApiInfo { Title = "SkyPlayerInfo", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "SkyPlayerInfo", Version = "v1.0" });
+
+
+
             });
             services.AddStackExchangeRedisCache(options =>
             {
@@ -45,7 +51,7 @@ namespace Sky.PlayerInfo
                 options.Providers.Add<GzipCompressionProvider>();
                 options.MimeTypes =
                     ResponseCompressionDefaults.MimeTypes.Concat(
-                        new [] { "application/json" });
+                        new[] { "application/json" });
             });
 
             services.AddSingleton<ITracer>(serviceProvider =>
@@ -68,6 +74,10 @@ namespace Sky.PlayerInfo
                 GlobalTracer.Register(tracer);
                 return tracer;
             });
+            services.AddCors(c => c.AddPolicy(CORS_POLICY, p =>
+            {
+                p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+            }));
             services.AddOpenTracing();
         }
 
@@ -79,16 +89,21 @@ namespace Sky.PlayerInfo
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.UseSwagger();
+            app.UseSwagger(a =>
+            {
+                a.RouteTemplate = "api/profile/swagger/{documentName}/swagger.json";
+            });
             app.UseSwaggerUI(c =>
             {
-                c.RoutePrefix = "api";
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "SkyPlayerInfo v1");
+                c.SwaggerEndpoint("/api/profile/swagger/v1/swagger.json", "Sample API");
+                c.RoutePrefix = "api/profile";
             });
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            
+            app.UseCors(CORS_POLICY);
 
             app.UseAuthorization();
 

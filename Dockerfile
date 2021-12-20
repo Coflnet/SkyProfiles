@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0 as build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 as build
 WORKDIR /build
 COPY SkyPlayerInfo.csproj SkyPlayerInfo.csproj
 RUN dotnet restore
@@ -6,10 +6,10 @@ COPY . .
 RUN dotnet test
 RUN dotnet publish -c release
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0
+FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
 
-COPY --from=build /build/bin/release/net5.0/publish/ .
+COPY --from=build /build/bin/release/net6.0/publish/ .
 
 ENV ASPNETCORE_URLS=http://+:8000
 # using a non-root user is a best practice for security related execution. 
