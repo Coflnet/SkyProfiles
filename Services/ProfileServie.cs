@@ -68,7 +68,7 @@ namespace Sky.PlayerInfo.Service
         public async Task<Root> GetFullResponse(string uuid)
         {
             var response = await client.ExecuteAsync(new RestRequest($"/profile/{uuid}"));
-            Console.WriteLine(response.Content);
+            Console.WriteLine(response.Content.Length > 2000);
             return JsonSerializer.Deserialize<Root>(response.Content);
         }
     }
