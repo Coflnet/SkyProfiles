@@ -50,5 +50,12 @@ namespace Sky.PlayerInfo.Controllers
             var data = await profileServie.GetProfileData(userId, profileId);
             return data.Collections;
         }
+        [HttpGet]
+        [Route("{userId}/{profileId}/data/slayers")]
+        public async Task<Slayers> GetProfileSlayers(string userId, string profileId)
+        {
+            var data = await profileServie.GetProfileData(userId, profileId);
+            return data.Slayers;
+        }
     }
 }
