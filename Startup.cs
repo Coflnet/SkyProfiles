@@ -31,7 +31,9 @@ namespace Sky.PlayerInfo
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(option =>{
+                option.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault;
+            });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v0", new OpenApiInfo { Title = "SkyPlayerInfo", Version = "v1" });

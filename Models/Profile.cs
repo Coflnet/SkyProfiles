@@ -9473,17 +9473,84 @@ namespace Sky.PlayerInfo.Models
 
     public class Slayers
     {
-/*        [JsonPropertyName("spider")]
-        public Spider Spider { get; set; }
+        [JsonPropertyName("spider")]
+        public Slayer Spider { get; set; }
 
         [JsonPropertyName("wolf")]
-        public Wolf Wolf { get; set; }
+        public Slayer Wolf { get; set; }
 
         [JsonPropertyName("zombie")]
-        public Zombie Zombie { get; set; }
+        public Slayer Zombie { get; set; }
 
         [JsonPropertyName("enderman")]
-        public Enderman Enderman { get; set; }*/
+        public Slayer Enderman { get; set; }
+    }
+
+    public class SlayerLevel
+    {
+        [JsonPropertyName("currentLevel")]
+        public int CurrentLevel { get; set; }
+
+        [JsonPropertyName("xp")]
+        public double? Xp { get; set; }
+
+        [JsonPropertyName("maxLevel")]
+        public int MaxLevel { get; set; }
+
+        [JsonPropertyName("progress")]
+        public double? Progress { get; set; }
+
+        [JsonPropertyName("xpForNext")]
+        public double? XpForNext { get; set; }
+    }
+
+    public class SlayerKills
+    {
+        [JsonPropertyName("1")]
+        public int _1 { get; set; }
+
+        [JsonPropertyName("2")]
+        public int _2 { get; set; }
+
+        [JsonPropertyName("3")]
+        public int _3 { get; set; }
+
+        [JsonPropertyName("4")]
+        public int _4 { get; set; }
+
+        [JsonPropertyName("5")]
+        public int _5 { get; set; }
+    }
+
+
+    public class Slayer
+    {
+        [JsonPropertyName("level")]
+        public SlayerLevel Level { get; set; }
+
+        [JsonPropertyName("kills")]
+        public SlayerKills Kills { get; set; }
+
+        [JsonPropertyName("claimed_levels")]
+        public ClaimedLevels ClaimedLevels { get; set; }
+
+        [JsonPropertyName("boss_kills_tier_0")]
+        public int BossKillsTier0 { get; set; }
+
+        [JsonPropertyName("xp")]
+        public int Xp { get; set; }
+
+        [JsonPropertyName("boss_kills_tier_1")]
+        public int BossKillsTier1 { get; set; }
+
+        [JsonPropertyName("boss_kills_tier_2")]
+        public int BossKillsTier2 { get; set; }
+
+        [JsonPropertyName("boss_kills_tier_3")]
+        public int BossKillsTier3 { get; set; }
+
+        [JsonPropertyName("boss_kills_tier_4")]
+        public int BossKillsTier4 { get; set; }
     }
 
     public class Missing

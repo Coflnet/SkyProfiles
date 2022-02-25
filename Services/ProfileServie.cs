@@ -57,7 +57,10 @@ namespace Sky.PlayerInfo.Service
                 await GetProfileStats(userId);
                 data = await distributedCache.GetAsync(key);
             }
-            return JsonSerializer.Deserialize<T>(data);
+            return JsonSerializer.Deserialize<T>(data, new JsonSerializerOptions()
+            {
+                NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString
+            });
         }
 
         private static string GetKey(string part, string profileId)
