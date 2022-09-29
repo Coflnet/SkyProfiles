@@ -2,6 +2,7 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
 using RestSharp;
 using Sky.PlayerInfo.Models;
 
@@ -9,13 +10,16 @@ namespace Sky.PlayerInfo.Service
 {
     public class ProfileServie
     {
-        private static RestClient client = new RestClient("https://sky.shiiyu.moe/api/v2");
+        private RestClient client;
+        IConfiguration config;
 
         IDistributedCache distributedCache;
 
-        public ProfileServie(IDistributedCache distributedCache)
+        public ProfileServie(IDistributedCache distributedCache, IConfiguration config)
         {
             this.distributedCache = distributedCache;
+            this.config = config;
+            client = new RestClient(config["SKYCRYPT_BASE_URL"]);
         }
 
         public async Task<Data> GetProfileData(string playerId, string profileId)
@@ -70,7 +74,7 @@ namespace Sky.PlayerInfo.Service
 
         public async Task<Root> GetFullResponse(string uuid)
         {
-            var response = await client.ExecuteAsync(new RestRequest($"/profile/{uuid}"));
+            var response = await client.ExecuteAsync(new RestRequest($"api/v2/profile/{uuid}"));
             Console.WriteLine(response.Content.Length > 2000);
             return JsonSerializer.Deserialize<Root>(response.Content);
         }

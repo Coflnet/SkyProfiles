@@ -13,6 +13,10 @@ using Microsoft.OpenApi.Models;
 using OpenTracing;
 using OpenTracing.Util;
 using Sky.PlayerInfo.Service;
+using System.Net;
+using Microsoft.AspNetCore.Diagnostics;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace Sky.PlayerInfo
 {
@@ -31,7 +35,8 @@ namespace Sky.PlayerInfo
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers().AddJsonOptions(option =>{
+            services.AddControllers().AddJsonOptions(option =>
+            {
                 option.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault;
             });
             services.AddSwaggerGen(c =>
@@ -84,7 +89,7 @@ namespace Sky.PlayerInfo
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
         {
             app.UseResponseCompression();
             if (env.IsDevelopment())
@@ -100,11 +105,36 @@ namespace Sky.PlayerInfo
                 c.SwaggerEndpoint("/api/profile/swagger/v1/swagger.json", "Sample API");
                 c.RoutePrefix = "api/profile";
             });
+            app.UseExceptionHandler(errorApp =>
+                {
 
-            app.UseHttpsRedirection();
+                    errorApp.Run(async context =>
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        context.Response.ContentType = "text/json";
+
+                        var exceptionHandlerPathFeature =
+                            context.Features.Get<IExceptionHandlerPathFeature>();
+
+
+                        using var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("error").StartActive();
+                        span.Span.Log(exceptionHandlerPathFeature?.Error?.Message);
+                        span.Span.Log(exceptionHandlerPathFeature?.Error?.StackTrace);
+                        var traceId = System.Net.Dns.GetHostName().Replace("player", "").Trim('-') + "." + span?.Span?.Context?.TraceId;
+                        logger.LogError(exceptionHandlerPathFeature?.Error, "fatal request error " + traceId);
+                        await context.Response.WriteAsync(
+                            JsonConvert.SerializeObject(new
+                            {
+                                slug = "internal_error",
+                                message = "An unexpected internal error occured. Please check that your request is valid. If it is please report he error and include the Trace.",
+                                trace = traceId
+                            }));
+
+                    });
+                });
 
             app.UseRouting();
-            
+
             app.UseCors(CORS_POLICY);
 
             app.UseAuthorization();

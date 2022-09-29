@@ -16355,58 +16355,58 @@ namespace Sky.PlayerInfo.Models
     public class Gems
     {
         [JsonPropertyName("COMBAT_0")]
-        public string COMBAT0 { get; set; }
+        public object COMBAT0 { get; set; }
 
         [JsonPropertyName("COMBAT_0_gem")]
-        public string COMBAT0Gem { get; set; }
+        public object COMBAT0Gem { get; set; }
 
         [JsonPropertyName("RUBY_0")]
-        public string RUBY0 { get; set; }
+        public object RUBY0 { get; set; }
 
         [JsonPropertyName("SAPPHIRE_0")]
-        public string SAPPHIRE0 { get; set; }
+        public object SAPPHIRE0 { get; set; }
 
         [JsonPropertyName("RUBY_3")]
-        public string RUBY3 { get; set; }
+        public object RUBY3 { get; set; }
 
         [JsonPropertyName("RUBY_1")]
-        public string RUBY1 { get; set; }
+        public object RUBY1 { get; set; }
 
         [JsonPropertyName("RUBY_2")]
-        public string RUBY2 { get; set; }
+        public object RUBY2 { get; set; }
 
         [JsonPropertyName("JADE_0")]
-        public string JADE0 { get; set; }
+        public object JADE0 { get; set; }
 
         [JsonPropertyName("UNIVERSAL_0")]
-        public string UNIVERSAL0 { get; set; }
+        public object UNIVERSAL0 { get; set; }
 
         [JsonPropertyName("AMBER_0")]
-        public string AMBER0 { get; set; }
+        public object AMBER0 { get; set; }
 
         [JsonPropertyName("UNIVERSAL_0_gem")]
-        public string UNIVERSAL0Gem { get; set; }
+        public object UNIVERSAL0Gem { get; set; }
 
         [JsonPropertyName("JASPER_0")]
-        public string JASPER0 { get; set; }
+        public object JASPER0 { get; set; }
 
         [JsonPropertyName("AMETHYST_2")]
-        public string AMETHYST2 { get; set; }
+        public object AMETHYST2 { get; set; }
 
         [JsonPropertyName("AMETHYST_1")]
-        public string AMETHYST1 { get; set; }
+        public object AMETHYST1 { get; set; }
 
         [JsonPropertyName("AMETHYST_0")]
-        public string AMETHYST0 { get; set; }
+        public object AMETHYST0 { get; set; }
 
         [JsonPropertyName("RUBY_4")]
-        public string RUBY4 { get; set; }
+        public object RUBY4 { get; set; }
 
         [JsonPropertyName("JASPER_1")]
-        public string JASPER1 { get; set; }
+        public object JASPER1 { get; set; }
 
         [JsonPropertyName("TOPAZ_0")]
-        public string TOPAZ0 { get; set; }
+        public object TOPAZ0 { get; set; }
     }
 
     public class ContainsItem
