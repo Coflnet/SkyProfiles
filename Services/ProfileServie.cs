@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -30,6 +31,12 @@ namespace Sky.PlayerInfo.Service
         public async Task<Root> GetProfiles(string playerId)
         {
             return await GetOrLoad<Root>("u" + playerId, playerId);
+        }
+
+        public async Task<string> GetActiveProfile(string playerId)
+        {
+            var root = await GetProfiles(playerId);
+            return root.Profiles.Where(p => p.Value.Current).FirstOrDefault().Key;
         }
 
         private async Task GetProfileStats(string uuid)
@@ -75,7 +82,6 @@ namespace Sky.PlayerInfo.Service
         public async Task<Root> GetFullResponse(string uuid)
         {
             var response = await client.ExecuteAsync(new RestRequest($"api/v2/profile/{uuid}"));
-            Console.WriteLine(response.Content.Length > 2000);
             return JsonSerializer.Deserialize<Root>(response.Content);
         }
     }

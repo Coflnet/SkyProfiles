@@ -38,6 +38,13 @@ namespace Sky.PlayerInfo.Controllers
         }
 
         [HttpGet]
+        [Route("{userId}/active")]
+        public Task<string> GetActiveProfile(string userId)
+        {
+            return profileServie.GetActiveProfile(userId);
+        }
+
+        [HttpGet]
         [Route("{userId}/{profileId}/data")]
         public Task<Data> GetProfileData(string userId, string profileId)
         {
