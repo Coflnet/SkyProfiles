@@ -17,6 +17,7 @@ using System.Net;
 using Microsoft.AspNetCore.Diagnostics;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
+using Coflnet.Sky.Core;
 
 namespace Sky.PlayerInfo
 {
@@ -61,31 +62,11 @@ namespace Sky.PlayerInfo
                         new[] { "application/json" });
             });
 
-            services.AddSingleton<ITracer>(serviceProvider =>
-            {
-                ILoggerFactory loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-                IConfiguration iConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
-
-                Jaeger.Configuration.SenderConfiguration.DefaultSenderResolver = new SenderResolver(loggerFactory)
-                    .RegisterSenderFactory<ThriftSenderFactory>();
-
-                var samplingRate = 0.10d;
-                var lowerBoundInSeconds = 30d;
-                ISampler sampler = new GuaranteedThroughputSampler(samplingRate, lowerBoundInSeconds);
-                var config = Jaeger.Configuration.FromIConfiguration(loggerFactory, iConfiguration);
-
-                ITracer tracer = config.GetTracerBuilder()
-                    .WithSampler(sampler)
-                    .Build();
-
-                GlobalTracer.Register(tracer);
-                return tracer;
-            });
             services.AddCors(c => c.AddPolicy(CORS_POLICY, p =>
             {
                 p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
             }));
-            services.AddOpenTracing();
+            services.AddJaeger(Configuration, 0.05, 30);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -108,29 +89,7 @@ namespace Sky.PlayerInfo
             app.UseExceptionHandler(errorApp =>
                 {
 
-                    errorApp.Run(async context =>
-                    {
-                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                        context.Response.ContentType = "text/json";
-
-                        var exceptionHandlerPathFeature =
-                            context.Features.Get<IExceptionHandlerPathFeature>();
-
-
-                        using var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("error").StartActive();
-                        span.Span.Log(exceptionHandlerPathFeature?.Error?.Message);
-                        span.Span.Log(exceptionHandlerPathFeature?.Error?.StackTrace);
-                        var traceId = System.Net.Dns.GetHostName().Replace("player", "").Trim('-') + "." + span?.Span?.Context?.TraceId;
-                        logger.LogError(exceptionHandlerPathFeature?.Error, "fatal request error " + traceId);
-                        await context.Response.WriteAsync(
-                            JsonConvert.SerializeObject(new
-                            {
-                                slug = "internal_error",
-                                message = "An unexpected internal error occured. Please check that your request is valid. If it is please report he error and include the Trace.",
-                                trace = traceId
-                            }));
-
-                    });
+                    ErrorHandler.Add(logger, errorApp, "sky-profile");
                 });
 
             app.UseRouting();
