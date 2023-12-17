@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Proxy.Client.Api;
 
 namespace Sky.PlayerInfo
 {
@@ -62,6 +63,7 @@ namespace Sky.PlayerInfo
                         new[] { "application/json" });
             });
 
+            services.AddSingleton<IProxyApi>(sp => new ProxyApi(Configuration["PROXY_BASE_URL"]));
             services.AddCors(c => c.AddPolicy(CORS_POLICY, p =>
             {
                 p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();

@@ -24,15 +24,15 @@ namespace Sky.PlayerInfo.Controllers
         }
 
         [HttpGet]
-        public async Task<Profile> Get()
+        public async Task<object> Get()
         {
-            var full = await profileServie.GetFullResponse("Technoblade");
-            return full.Profiles.First().Value;
+            var full = await profileServie.GetFullResponse("b876ec32e396476ba1158438d83c67d4");
+            return full.profiles.First().members;
         }
 
         [HttpGet]
         [Route("{userId}")]
-        public Task<Root> GetProfiles(string userId)
+        public Task<ProfileRoot> GetProfiles(string userId)
         {
             return profileServie.GetProfiles(userId);
         }
@@ -54,15 +54,23 @@ namespace Sky.PlayerInfo.Controllers
         [Route("{userId}/{profileId}/data/collections")]
         public async Task<Dictionary<string, CollectionItem>> GetProfileCollections(string userId, string profileId)
         {
-            var data = await profileServie.GetProfileData(userId, profileId);
-            return data.Collections;
+            return await profileServie.GetCollections(userId, profileId);
         }
         [HttpGet]
         [Route("{userId}/{profileId}/data/slayers")]
-        public async Task<Slayers> GetProfileSlayers(string userId, string profileId)
+        public async Task<Dictionary<string, SlayerElem>> GetProfileSlayers(string userId, string profileId)
         {
-            var data = await profileServie.GetProfileData(userId, profileId);
-            return data.Slayers;
+            var data = await profileServie.GetSlayer(userId, profileId);
+            return data.Select(c => (c.Key, new SlayerElem() { Level = new SlayerElem.SlayerLvl() { currentLevel = int.Parse(c.Value.claimed_levels.LastOrDefault().Key?.Split('_').LastOrDefault() ?? "0") } })).ToDictionary(c => c.Key, c => c.Item2);
+        }
+
+        public class SlayerElem
+        {
+            public SlayerLvl Level { get; set; }
+            public class SlayerLvl
+            {
+                public int currentLevel { get; set; }
+            }
         }
     }
 }
