@@ -56,7 +56,7 @@ namespace Sky.PlayerInfo.Service
             var original = await GetOrLoad<Coflnet.Sky.PlayerInfo.Models.Hypixel.Root>("u" + playerId, playerId);
             return new ProfileRoot()
             {
-                Profiles = original.profiles.ToDictionary(p => p.profile_id, p => "")
+                Profiles = original.profiles.ToDictionary(p => p.profile_id, p => p.cute_name)
             };
         }
 

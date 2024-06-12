@@ -1,7 +1,4 @@
 using System.Linq;
-using Jaeger.Samplers;
-using Jaeger.Senders;
-using Jaeger.Senders.Thrift;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -10,15 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using OpenTracing;
-using OpenTracing.Util;
 using Sky.PlayerInfo.Service;
-using System.Net;
-using Microsoft.AspNetCore.Diagnostics;
-using Newtonsoft.Json;
-using Microsoft.AspNetCore.Http;
 using Coflnet.Sky.Core;
 using Coflnet.Sky.Proxy.Client.Api;
+using StackExchange.Redis;
 
 namespace Sky.PlayerInfo
 {
@@ -51,7 +43,13 @@ namespace Sky.PlayerInfo
             });
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = Configuration["redis_host"];
+                var stringConfig = Configuration["redis_host"];
+                var parsedOptions = ConfigurationOptions.Parse(stringConfig);
+                if(parsedOptions.SyncTimeout < 500)
+                {
+                    parsedOptions.SyncTimeout = 500;
+                }
+                options.ConfigurationOptions = parsedOptions;
             });
             services.AddScoped<ProfileServie>();
             services.AddResponseCompression(options =>
