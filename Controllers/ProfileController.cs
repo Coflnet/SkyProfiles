@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Sky.PlayerInfo.Models;
 using Sky.PlayerInfo.Service;
@@ -63,6 +64,14 @@ namespace Sky.PlayerInfo.Controllers
             var data = await profileServie.GetSlayer(userId, profileId);
             return data.Select(c => (c.Key, new SlayerElem() { Level = new SlayerElem.SlayerLvl() { currentLevel = int.Parse(c.Value.claimed_levels.LastOrDefault().Key?.Split('_').LastOrDefault() ?? "0") } })).ToDictionary(c => c.Key, c => c.Item2);
         }
+
+        [HttpGet]
+        [Route("{userId}/{profileId}/data/forge")]
+        public async Task<ForgeData> GetProfileForge(string userId, string profileId)
+        {
+            return await profileServie.GetForgeData(userId, profileId);
+        }
+        
 
         public class SlayerElem
         {

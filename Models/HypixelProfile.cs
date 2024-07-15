@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Coflnet.Sky.PlayerInfo.Models.Hypixel;
 
@@ -378,6 +379,8 @@ namespace Coflnet.Sky.PlayerInfo.Models.Hypixel;
 
         [JsonPropertyName("player_data")]
         public PlayerData player_data { get; set; }
+        [JsonPropertyName("mining_core")]
+        public MiningCore mining_core { get; set; }
 
 /*
         [JsonPropertyName("accessory_bag_storage")]
@@ -409,8 +412,6 @@ namespace Coflnet.Sky.PlayerInfo.Models.Hypixel;
         [JsonPropertyName("experimentation")]
         public Experimentation experimentation { get; set; }
 
-        [JsonPropertyName("mining_core")]
-        public MiningCore mining_core { get; set; }
 
         [JsonPropertyName("bestiary")]
         public Bestiary bestiary { get; set; }
@@ -10442,6 +10443,8 @@ namespace Coflnet.Sky.PlayerInfo.Models.Hypixel;
 
     public class Nodes
     {
+        [JsonPropertyName("forge_time")]
+        public int? forge_time { get; set; }
         [JsonPropertyName("special_0")]
         public int special_0 { get; set; }
 

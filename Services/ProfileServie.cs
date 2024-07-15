@@ -35,13 +35,18 @@ namespace Sky.PlayerInfo.Service
         public async Task<Dictionary<string, CollectionItem>> GetCollections(string playerId, string profileId)
         {
             var unlockedList = await GetOrLoad<List<string>>(GetKey("collections", profileId), playerId);
-            return unlockedList.Select(c => (GetCollectionName(c), // name without level at the end
-                 new CollectionItem() { Tier = int.Parse(c.Split('_').Last()) })).GroupBy(c=>c.Item1).ToDictionary(c=>c.Key,c=>c.OrderByDescending(c=>c.Item2.Tier).First().Item2);
+            return ConvertCollections(unlockedList);
         }
 
-        public async Task<Dictionary<string,Coflnet.Sky.PlayerInfo.Models.Hypixel.SlayerBoss>> GetSlayer(string playerId, string profileId)
+        private Dictionary<string, CollectionItem> ConvertCollections(List<string> unlockedList)
         {
-            var data = await GetOrLoad<Dictionary<string,Coflnet.Sky.PlayerInfo.Models.Hypixel.SlayerBoss>>(GetKey("slayer_boss", profileId), playerId);
+            return unlockedList.Select(c => (GetCollectionName(c), // name without level at the end
+                 new CollectionItem() { Tier = int.Parse(c.Split('_').Last()) })).GroupBy(c => c.Item1).ToDictionary(c => c.Key, c => c.OrderByDescending(c => c.Item2.Tier).First().Item2);
+        }
+
+        public async Task<Dictionary<string, Coflnet.Sky.PlayerInfo.Models.Hypixel.SlayerBoss>> GetSlayer(string playerId, string profileId)
+        {
+            var data = await GetOrLoad<Dictionary<string, Coflnet.Sky.PlayerInfo.Models.Hypixel.SlayerBoss>>(GetKey("slayer_boss", profileId), playerId);
             return data;
         }
 
@@ -75,16 +80,44 @@ namespace Sky.PlayerInfo.Service
                 await Task.WhenAll(
                     Save(GetKey("items", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.members[uuid].item_data)),
                     Save(GetKey("collections", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.members[uuid].player_data.unlocked_coll_tiers)),
-                    Save(GetKey("slayer_boss", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.members[uuid].slayer?.slayer_bosses))
+                    Save(GetKey("slayer_boss", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.members[uuid].slayer?.slayer_bosses)),
+                    Save(GetKey("forge", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(GetForgeDetails(item.members[uuid])))
                 // Save(GetKey("raw", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.Value.Raw))
                 );
             }
             await Save("u" + uuid, JsonSerializer.SerializeToUtf8Bytes(full));
         }
 
+        private ForgeData GetForgeDetails(Coflnet.Sky.PlayerInfo.Models.Hypixel.Member member)
+        {
+            var data = new ForgeData();
+            var collections = ConvertCollections(member.player_data.unlocked_coll_tiers).ToDictionary(c => c.Key, c => (int)c.Value.Tier);
+            var expRequired = 0;
+            foreach (var item in MappingConstants.HotMexpToLevel)
+            {
+                if(expRequired + item.Value > member.mining_core?.experience)
+                {
+                    data.HotMLevel = item.Key -1;
+                    break;
+                }
+                expRequired += item.Value;
+            }
+            Console.WriteLine($"HotMLevel {data.HotMLevel} {member.mining_core?.experience}");
+            //data.HotMLevel = MappingConstants.HotMexpToLevel.Where(c => member.mining_core?.experience >= c.Value).Select(c=>c.Key).DefaultIfEmpty(0).Max(c => c);
+            if (member.mining_core?.nodes?.forge_time != null && member.mining_core.nodes.forge_time <= 20)
+                data.QuickForgeSpeed = MappingConstants.QuickForgeToPercent[member.mining_core.nodes.forge_time.Value];
+            data.CollectionLevels = collections;
+            return data;
+        }
+
         private async Task Save(string key, byte[] data)
         {
             await distributedCache.SetAsync(key, data, new DistributedCacheEntryOptions() { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7) });
+        }
+
+        public async Task<ForgeData> GetForgeData(string playerId, string profileId)
+        {
+            return await GetOrLoad<ForgeData>(GetKey("forge", profileId), playerId);
         }
 
         private async Task<T> GetOrLoad<T>(string key, string userId)
@@ -115,4 +148,49 @@ namespace Sky.PlayerInfo.Service
         }
     }
 
+    public class ForgeData
+    {
+        public int HotMLevel { get; set; }
+        public float QuickForgeSpeed { get; set; }
+        public Dictionary<string, int> CollectionLevels { get; set; }
+    }
+
+    public class MappingConstants
+    {
+        public static Dictionary<int, int> HotMexpToLevel = new(){
+            {1, 0},
+            {2, 3000},
+            {3, 9000},
+            {4, 25000},
+            {5, 60000},
+            {6, 100000},
+            {7, 150000},
+            {8, 210000},
+            {9, 290000},
+            {10, 400000},
+        };
+
+        public static Dictionary<int, float> QuickForgeToPercent = new(){
+            {1, 0.895f},
+            {2, 0.89f},
+            {3, 0.885f},
+            {4, 0.88f},
+            {5, 0.875f},
+            {6, 0.87f},
+            {7, 0.865f},
+            {8, 0.86f},
+            {9, 0.855f},
+            {10, 0.85f},
+            {11, 0.845f},
+            {12, 0.84f},
+            {13, 0.835f},
+            {14, 0.83f},
+            {15, 0.825f},
+            {16, 0.82f},
+            {17, 0.815f},
+            {18, 0.81f},
+            {19, 0.805f},
+            {20, 0.7f}
+        };
+    }
 }
