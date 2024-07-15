@@ -30,10 +30,12 @@ namespace Sky.PlayerInfo.Service
 
         public async Task<Data> GetProfileData(string playerId, string profileId)
         {
+            profileId = await MapProfileId(playerId, profileId);
             return await GetOrLoad<Data>(GetKey("data", profileId), playerId);
         }
         public async Task<Dictionary<string, CollectionItem>> GetCollections(string playerId, string profileId)
         {
+            profileId = await MapProfileId(playerId, profileId);
             var unlockedList = await GetOrLoad<List<string>>(GetKey("collections", profileId), playerId);
             return ConvertCollections(unlockedList);
         }
@@ -46,6 +48,7 @@ namespace Sky.PlayerInfo.Service
 
         public async Task<Dictionary<string, Coflnet.Sky.PlayerInfo.Models.Hypixel.SlayerBoss>> GetSlayer(string playerId, string profileId)
         {
+            profileId = await MapProfileId(playerId, profileId);
             var data = await GetOrLoad<Dictionary<string, Coflnet.Sky.PlayerInfo.Models.Hypixel.SlayerBoss>>(GetKey("slayer_boss", profileId), playerId);
             return data;
         }
@@ -69,6 +72,15 @@ namespace Sky.PlayerInfo.Service
         {
             var original = await GetOrLoad<Coflnet.Sky.PlayerInfo.Models.Hypixel.Root>("u" + playerId, playerId);
             return original.profiles.Where(p => p.selected).FirstOrDefault().profile_id;
+        }
+
+        private async Task<string> MapProfileId(string playerId, string profileId)
+        {
+            if(string.IsNullOrEmpty(profileId) || profileId == "current")
+            {
+                return await GetActiveProfile(playerId);
+            }
+            return profileId;
         }
 
         private async Task GetProfileStats(string uuid)
@@ -117,6 +129,7 @@ namespace Sky.PlayerInfo.Service
 
         public async Task<ForgeData> GetForgeData(string playerId, string profileId)
         {
+            profileId = await MapProfileId(playerId, profileId);
             return await GetOrLoad<ForgeData>(GetKey("forge", profileId), playerId);
         }
 
