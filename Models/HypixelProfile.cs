@@ -6,8 +6,9 @@ namespace Coflnet.Sky.PlayerInfo.Models.Hypixel;
 
 
 // Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
-    public class _0
-    {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+public class _0
+{
         [JsonPropertyName("type")]
         public int type { get; set; }
 

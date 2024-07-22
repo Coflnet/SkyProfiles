@@ -11,6 +11,7 @@
     <ProjectReference Include="../dev/hypixel.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Coflnet.Core" Version="0.2.0" />
     <PackageReference Include="Coflnet.Sky.Proxy.Client" Version="0.1.2" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
   </ItemGroup>

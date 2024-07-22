@@ -11,6 +11,7 @@ using Sky.PlayerInfo.Service;
 using Coflnet.Sky.Core;
 using Coflnet.Sky.Proxy.Client.Api;
 using StackExchange.Redis;
+using Coflnet.Core;
 
 namespace Sky.PlayerInfo
 {
@@ -52,6 +53,7 @@ namespace Sky.PlayerInfo
                 options.ConfigurationOptions = parsedOptions;
             });
             services.AddScoped<ProfileServie>();
+            services.AddSingleton<Service.CacheService>();
             services.AddResponseCompression(options =>
             {
                 options.Providers.Add<BrotliCompressionProvider>();
@@ -66,7 +68,7 @@ namespace Sky.PlayerInfo
             {
                 p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
             }));
-            services.AddJaeger(Configuration, 0.05, 30);
+            services.AddCoflnetCore();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -86,12 +88,8 @@ namespace Sky.PlayerInfo
                 c.SwaggerEndpoint("/api/profile/swagger/v1/swagger.json", "Sample API");
                 c.RoutePrefix = "api/profile";
             });
-            app.UseExceptionHandler(errorApp =>
-                {
 
-                    ErrorHandler.Add(logger, errorApp, "sky-profile");
-                });
-
+            app.UseCoflnetCore();
             app.UseRouting();
 
             app.UseCors(CORS_POLICY);

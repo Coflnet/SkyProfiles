@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -17,11 +18,13 @@ namespace Sky.PlayerInfo.Controllers
 
         private readonly ILogger<ProfileController> _logger;
         private ProfileServie profileServie;
+        private CacheService cacheService;
 
-        public ProfileController(ILogger<ProfileController> logger, ProfileServie profileServie)
+        public ProfileController(ILogger<ProfileController> logger, ProfileServie profileServie, CacheService cacheService)
         {
             _logger = logger;
             this.profileServie = profileServie;
+            this.cacheService = cacheService;
         }
 
         [HttpGet]
@@ -29,6 +32,25 @@ namespace Sky.PlayerInfo.Controllers
         {
             var full = await profileServie.GetFullResponse("b876ec32e396476ba1158438d83c67d4");
             return full.profiles.First().members;
+        }
+
+        [HttpGet]
+        [Route("{userId}/{profileId}")]
+        public async Task<object> GetProfile(string userId, string profileId)
+        {
+            Guid.TryParse(profileId, out Guid parsedProfile);
+            Guid.TryParse(userId, out Guid parsedUserId);
+            Response.ContentType = "application/json"; // the header triggers automatic serialization
+            return JsonSerializer.Deserialize<object>(await cacheService.GetProfileJson(parsedUserId, parsedProfile));
+        }
+
+        [HttpGet]
+        [Route("{userId}/hypixel")]
+        public async Task<object> HypixelProfile(string userId, DateTimeOffset maxAge = default)
+        {
+            Guid.TryParse(userId, out Guid parsedUserId);
+            Response.ContentType = "application/json"; // the header triggers automatic serialization
+            return await cacheService.GetProfileData(parsedUserId, maxAge);
         }
 
         [HttpGet]
@@ -71,7 +93,7 @@ namespace Sky.PlayerInfo.Controllers
         {
             return await profileServie.GetForgeData(userId, profileId);
         }
-        
+
 
         public class SlayerElem
         {
