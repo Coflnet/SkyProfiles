@@ -168,6 +168,17 @@ public class CacheService
         return JsonSerializer.Deserialize<string>(await proxyApi.ProxyHypixelGetAsync(path));
     }
 
+    internal async Task<string> GetActiveProfile(string playerId)
+    {
+        var activeProfile = activeProfiles.Where(p => p.PlayerId == Guid.Parse(playerId)).FirstOrDefault().Execute();
+        if (activeProfile == null)
+        {
+            await GetProfileJson(Guid.Parse(playerId), Guid.Empty);
+            activeProfile = activeProfiles.Where(p => p.PlayerId == Guid.Parse(playerId)).FirstOrDefault().Execute();
+        }
+        return activeProfile.ProfileId.ToString();
+    }
+
     public class ProfileEntry
     {
         public Guid ProfileId { get; set; }

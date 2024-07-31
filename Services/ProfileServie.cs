@@ -17,26 +17,28 @@ namespace Sky.PlayerInfo.Service
         private RestClient client;
         IConfiguration config;
         private IProxyApi proxyApi;
+        private CacheService cacheService;
 
         IDistributedCache distributedCache;
 
-        public ProfileServie(IDistributedCache distributedCache, IConfiguration config, IProxyApi proxyApi)
+        public ProfileServie(IDistributedCache distributedCache, IConfiguration config, IProxyApi proxyApi, CacheService cacheService)
         {
             this.distributedCache = distributedCache;
             this.config = config;
             client = new RestClient(config["SKYCRYPT_BASE_URL"]);
             this.proxyApi = proxyApi;
+            this.cacheService = cacheService;
         }
 
         public async Task<Data> GetProfileData(string playerId, string profileId)
         {
             profileId = await MapProfileId(playerId, profileId);
-            return await GetOrLoad<Data>(GetKey("data", profileId), playerId);
+            return await GetOrLoad<Data>(GetKey("data", profileId), playerId, profileId);
         }
         public async Task<Dictionary<string, CollectionItem>> GetCollections(string playerId, string profileId)
         {
             profileId = await MapProfileId(playerId, profileId);
-            var unlockedList = await GetOrLoad<List<string>>(GetKey("collections", profileId), playerId);
+            var unlockedList = await GetOrLoad<List<string>>(GetKey("collections", profileId), playerId, profileId);
             return ConvertCollections(unlockedList);
         }
 
@@ -49,7 +51,7 @@ namespace Sky.PlayerInfo.Service
         public async Task<Dictionary<string, Coflnet.Sky.PlayerInfo.Models.Hypixel.SlayerBoss>> GetSlayer(string playerId, string profileId)
         {
             profileId = await MapProfileId(playerId, profileId);
-            var data = await GetOrLoad<Dictionary<string, Coflnet.Sky.PlayerInfo.Models.Hypixel.SlayerBoss>>(GetKey("slayer_boss", profileId), playerId);
+            var data = await GetOrLoad<Dictionary<string, Coflnet.Sky.PlayerInfo.Models.Hypixel.SlayerBoss>>(GetKey("slayer_boss", profileId), playerId, profileId);
             return data;
         }
 
@@ -61,43 +63,40 @@ namespace Sky.PlayerInfo.Service
 
         public async Task<ProfileRoot> GetProfiles(string playerId)
         {
-            var original = await GetOrLoad<Coflnet.Sky.PlayerInfo.Models.Hypixel.Root>("u" + playerId, playerId);
-            return new ProfileRoot()
+            var hypixelResponse = await cacheService.GetProfileData(Guid.Parse(playerId));
+            var root = new ProfileRoot();
+            foreach (var profile in hypixelResponse.stats.SkyBlock.profiles)
             {
-                Profiles = original.profiles.ToDictionary(p => p.profile_id, p => p.cute_name)
-            };
+                root.Profiles.Add(profile.Value.cute_name, profile.Value.profile_id);
+            }
+            return root;
         }
 
         public async Task<string> GetActiveProfile(string playerId)
         {
-            var original = await GetOrLoad<Coflnet.Sky.PlayerInfo.Models.Hypixel.Root>("u" + playerId, playerId);
-            return original.profiles.Where(p => p.selected).FirstOrDefault().profile_id;
+            return await cacheService.GetActiveProfile(playerId);
         }
 
         private async Task<string> MapProfileId(string playerId, string profileId)
         {
-            if(string.IsNullOrEmpty(profileId) || profileId == "current")
+            if (string.IsNullOrEmpty(profileId) || profileId == "current")
             {
                 return await GetActiveProfile(playerId);
             }
             return profileId;
         }
 
-        private async Task GetProfileStats(string uuid)
+        private async Task GetProfileStats(string uuid, string profileId)
         {
-            var full = await GetFullResponse(uuid);
-            foreach (var item in full.profiles)
-            {
-                Console.WriteLine("Saving " + item.profile_id + " " + JsonSerializer.Serialize(item.members[uuid].slayer?.slayer_bosses));
-                await Task.WhenAll(
-                    Save(GetKey("items", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.members[uuid].item_data)),
-                    Save(GetKey("collections", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.members[uuid].player_data.unlocked_coll_tiers)),
-                    Save(GetKey("slayer_boss", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.members[uuid].slayer?.slayer_bosses)),
-                    Save(GetKey("forge", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(GetForgeDetails(item.members[uuid])))
-                // Save(GetKey("raw", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.Value.Raw))
-                );
-            }
-            await Save("u" + uuid, JsonSerializer.SerializeToUtf8Bytes(full));
+            var memberProfile = await GetFullResponse(uuid, profileId);
+            Console.WriteLine("Saving " + profileId + " " + JsonSerializer.Serialize(memberProfile.slayer?.slayer_bosses));
+            await Task.WhenAll(
+                Save(GetKey("items", profileId), JsonSerializer.SerializeToUtf8Bytes(memberProfile.item_data)),
+                Save(GetKey("collections", profileId), JsonSerializer.SerializeToUtf8Bytes(memberProfile.player_data.unlocked_coll_tiers)),
+                Save(GetKey("slayer_boss", profileId), JsonSerializer.SerializeToUtf8Bytes(memberProfile.slayer?.slayer_bosses)),
+                Save(GetKey("forge", profileId), JsonSerializer.SerializeToUtf8Bytes(GetForgeDetails(memberProfile)))
+            // Save(GetKey("raw", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.Value.Raw))
+            );
         }
 
         private ForgeData GetForgeDetails(Coflnet.Sky.PlayerInfo.Models.Hypixel.Member member)
@@ -107,9 +106,9 @@ namespace Sky.PlayerInfo.Service
             var expRequired = 0;
             foreach (var item in MappingConstants.HotMexpToLevel)
             {
-                if(expRequired + item.Value > member.mining_core?.experience)
+                if (expRequired + item.Value > member.mining_core?.experience)
                 {
-                    data.HotMLevel = item.Key -1;
+                    data.HotMLevel = item.Key - 1;
                     break;
                 }
                 expRequired += item.Value;
@@ -130,15 +129,15 @@ namespace Sky.PlayerInfo.Service
         public async Task<ForgeData> GetForgeData(string playerId, string profileId)
         {
             profileId = await MapProfileId(playerId, profileId);
-            return await GetOrLoad<ForgeData>(GetKey("forge", profileId), playerId);
+            return await GetOrLoad<ForgeData>(GetKey("forge", profileId), playerId, profileId);
         }
 
-        private async Task<T> GetOrLoad<T>(string key, string userId)
+        private async Task<T> GetOrLoad<T>(string key, string userId, string profileId)
         {
             var data = await distributedCache.GetAsync(key);
             if (data == null || System.Text.Encoding.UTF8.GetString(data) == "null")
             {
-                await GetProfileStats(userId);
+                await GetProfileStats(userId, profileId);
                 data = await distributedCache.GetAsync(key);
             }
             Console.WriteLine($"loaded {key} {System.Text.Encoding.UTF8.GetString(data).Truncate(100)}");
@@ -153,11 +152,11 @@ namespace Sky.PlayerInfo.Service
             return "p" + part + profileId;
         }
 
-        public async Task<Coflnet.Sky.PlayerInfo.Models.Hypixel.Root> GetFullResponse(string uuid)
+        public async Task<Coflnet.Sky.PlayerInfo.Models.Hypixel.Member> GetFullResponse(string uuid, string profileId)
         {
-            var response = await proxyApi.ProxyHypixelGetAsync($"/v2/skyblock/profiles?uuid={uuid}");
-            Console.WriteLine(response.Truncate(100));
-            return JsonSerializer.Deserialize<Coflnet.Sky.PlayerInfo.Models.Hypixel.Root>(JsonSerializer.Deserialize<string>(response));
+            Guid.TryParse(profileId, out var guid);
+            var response = await cacheService.GetProfileJson(Guid.Parse(uuid), guid, DateTime.UtcNow.AddDays(-7));
+            return JsonSerializer.Deserialize<Coflnet.Sky.PlayerInfo.Models.Hypixel.Member>(response);
         }
     }
 

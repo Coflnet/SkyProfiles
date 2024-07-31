@@ -30,8 +30,8 @@ namespace Sky.PlayerInfo.Controllers
         [HttpGet]
         public async Task<object> Get()
         {
-            var full = await profileServie.GetFullResponse("b876ec32e396476ba1158438d83c67d4");
-            return full.profiles.First().members;
+            var full = await profileServie.GetFullResponse("b876ec32e396476ba1158438d83c67d4", "");
+            return full;
         }
 
         [HttpGet]
