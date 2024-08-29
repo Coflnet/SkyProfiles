@@ -7,6 +7,7 @@ using Coflnet.Sky.Core;
 using Coflnet.Sky.Proxy.Client.Api;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using RestSharp;
 using Sky.PlayerInfo.Models;
 
@@ -64,12 +65,21 @@ namespace Sky.PlayerInfo.Service
         public async Task<ProfileRoot> GetProfiles(string playerId)
         {
             var hypixelResponse = await cacheService.GetProfileData(Guid.Parse(playerId));
-            var root = new ProfileRoot();
-            foreach (var profile in hypixelResponse.stats.SkyBlock.profiles)
+            try
             {
-                root.Profiles.Add(profile.Value.cute_name, profile.Value.profile_id);
+                var root = new ProfileRoot();
+                foreach (var profile in hypixelResponse.stats.SkyBlock.profiles)
+                {
+                    root.Profiles.Add(profile.Value.cute_name, profile.Value.profile_id);
+                }
+                return root;
             }
-            return root;
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                Console.WriteLine(JsonConvert.SerializeObject(hypixelResponse));
+                return new ProfileRoot();
+            }
         }
 
         public async Task<string> GetActiveProfile(string playerId)
