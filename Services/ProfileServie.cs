@@ -7,7 +7,6 @@ using Coflnet.Sky.Core;
 using Coflnet.Sky.Proxy.Client.Api;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using RestSharp;
 using Sky.PlayerInfo.Models;
 
@@ -77,7 +76,7 @@ namespace Sky.PlayerInfo.Service
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                Console.WriteLine(JsonConvert.SerializeObject(hypixelResponse));
+                Console.WriteLine(JsonSerializer.Serialize(hypixelResponse));
                 return new ProfileRoot();
             }
         }
