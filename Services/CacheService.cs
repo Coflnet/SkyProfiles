@@ -190,7 +190,7 @@ public class CacheService
         return activeProfile.ProfileId.ToString();
     }
 
-    internal async Task<Models.Museum.Player> GetMuseum(Guid parsedUserId, Guid parsedProfile, DateTime after)
+    internal async Task<Models.Museum.Player> GetMuseum(Guid parsedUserId, Guid parsedProfile, DateTimeOffset after)
     {
         var profile = await museumProfiles.Where(p => p.ProfileId == parsedProfile && p.PlayerId == parsedUserId && p.SavedAt > after).FirstOrDefault().ExecuteAsync();
         if (profile != null)

@@ -45,11 +45,11 @@ namespace Sky.PlayerInfo.Controllers
         }
         [HttpGet]
         [Route("{userId}/{profileId}/museum")]
-        public async Task<Sky.PlayerInfo.Models.Museum.MuseumRoot> GetMuseum(string userId, string profileId)
+        public async Task<Models.Museum.Player> GetMuseum(string userId, string profileId, DateTimeOffset maxAge = default)
         {
             Guid.TryParse(profileId, out Guid parsedProfile);
             Guid.TryParse(userId, out Guid parsedUserId);
-            return await cacheService.GetMuseum(parsedUserId, parsedProfile);
+            return await cacheService.GetMuseum(parsedUserId, parsedProfile, maxAge);
         }
 
         [HttpGet]
