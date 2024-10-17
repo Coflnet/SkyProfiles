@@ -21,6 +21,7 @@ public class CacheService
     Table<ProfileEntry> profiles;
     Table<ActiveProfile> activeProfiles;
     Table<HypixelProfile> hypixelProfiles;
+    Table<MuseumProfile> museumProfiles;
 
     public CacheService(IConfiguration config, IProxyApi proxyApi, ISession session)
     {
@@ -51,6 +52,16 @@ public class CacheService
 
         hypixelProfiles = new Table<HypixelProfile>(session, hypixelMapping, "hypixel_player_profiles");
 
+        var museumMapping = new MappingConfiguration().Define(
+                new Map<MuseumProfile>()
+                .PartitionKey(p => p.ProfileId)
+                .ClusteringKey(p => p.PlayerId)
+                .ClusteringKey(p => p.SavedAt, SortOrder.Descending)
+                .Column(p => p.Content));
+
+        museumProfiles = new Table<MuseumProfile>(session, museumMapping, "hypixel_museum");
+
+        museumProfiles.CreateIfNotExists();
         hypixelProfiles.CreateIfNotExists();
         activeProfiles.CreateIfNotExists();
         profiles.CreateIfNotExists();
@@ -179,6 +190,33 @@ public class CacheService
         return activeProfile.ProfileId.ToString();
     }
 
+    internal async Task<Models.Museum.Player> GetMuseum(Guid parsedUserId, Guid parsedProfile, DateTime after)
+    {
+        var profile = await museumProfiles.Where(p => p.ProfileId == parsedProfile && p.PlayerId == parsedUserId && p.SavedAt > after).FirstOrDefault().ExecuteAsync();
+        if (profile != null)
+        {
+            return JsonSerializer.Deserialize<Models.Museum.Player>(profile.Content);
+        }
+        var response = await Proxy($"/v2/skyblock/museum?profile={parsedProfile:n}");
+        var parsed = JsonSerializer.Deserialize<Models.Museum.MuseumRoot>(response);
+        var player = parsed.members.FirstOrDefault(p => p.Key == parsedUserId.ToString("n"));
+        foreach (var item in parsed.members)
+        {
+            var playerData = JsonSerializer.Serialize(item.Value);
+            var playerProfile = new MuseumProfile()
+            {
+                ProfileId = parsedProfile,
+                PlayerId = Guid.Parse(item.Key),
+                Content = playerData,
+                SavedAt = DateTimeOffset.UtcNow
+            };
+            var insert = museumProfiles.Insert(playerProfile);
+            insert.SetTTL(60 * 60 * 24 * 7);
+            await insert.ExecuteAsync();
+        }
+        return player.Value;
+    }
+
     public class ProfileEntry
     {
         public Guid ProfileId { get; set; }
@@ -219,6 +257,14 @@ public class CacheService
     {
         public Guid PlayerId { get; set; }
         public DateTimeOffset LastLogout { get; set; }
+        public string Content { get; set; }
+    }
+
+    public class MuseumProfile
+    {
+        public Guid ProfileId { get; set; }
+        public Guid PlayerId { get; set; }
+        public DateTimeOffset SavedAt { get; set; }
         public string Content { get; set; }
     }
 }

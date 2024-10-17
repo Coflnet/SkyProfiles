@@ -43,6 +43,14 @@ namespace Sky.PlayerInfo.Controllers
             Response.ContentType = "application/json"; // the header triggers automatic serialization
             return JsonSerializer.Deserialize<object>(await cacheService.GetProfileJson(parsedUserId, parsedProfile));
         }
+        [HttpGet]
+        [Route("{userId}/{profileId}/museum")]
+        public async Task<Sky.PlayerInfo.Models.Museum.MuseumRoot> GetMuseum(string userId, string profileId)
+        {
+            Guid.TryParse(profileId, out Guid parsedProfile);
+            Guid.TryParse(userId, out Guid parsedUserId);
+            return await cacheService.GetMuseum(parsedUserId, parsedProfile);
+        }
 
         [HttpGet]
         [Route("{userId}/hypixel")]
