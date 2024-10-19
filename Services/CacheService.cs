@@ -192,6 +192,8 @@ public class CacheService
 
     internal async Task<Models.Museum.Player> GetMuseum(Guid parsedUserId, Guid parsedProfile, DateTimeOffset after)
     {
+        if (parsedProfile == default)
+            parsedProfile = Guid.Parse(await GetActiveProfile(parsedUserId.ToString("n")));
         var profile = await museumProfiles.Where(p => p.ProfileId == parsedProfile && p.PlayerId == parsedUserId && p.SavedAt > after).FirstOrDefault().ExecuteAsync();
         if (profile != null)
         {
