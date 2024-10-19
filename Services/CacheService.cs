@@ -55,7 +55,7 @@ public class CacheService
         var museumMapping = new MappingConfiguration().Define(
                 new Map<MuseumProfile>()
                 .PartitionKey(p => p.ProfileId)
-                .ClusteringKey(p => p.PlayerId)
+                .ClusteringKey(p => p.PlayerId, SortOrder.Descending)
                 .ClusteringKey(p => p.SavedAt, SortOrder.Descending)
                 .Column(p => p.Content));
 
