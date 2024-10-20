@@ -19404,6 +19404,6 @@ namespace Sky.PlayerInfo.Models
     {
 
         [JsonPropertyName("profiles")]
-        public Dictionary<string, string> Profiles { get; set; }
+        public Dictionary<string, string> Profiles { get; set; } = new();
     }
 }
