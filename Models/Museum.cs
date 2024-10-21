@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 namespace Sky.PlayerInfo.Models.Museum;
 public record Player(
-    int value,
+    long value,
     bool appraisal,
     Dictionary<string, DonatedItem> items
 );
