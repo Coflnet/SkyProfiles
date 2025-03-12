@@ -36,12 +36,13 @@ namespace Sky.PlayerInfo.Controllers
 
         [HttpGet]
         [Route("{userId}/{profileId}")]
-        public async Task<object> GetProfile(string userId, string profileId)
+        public async Task<object> GetProfile(string userId, string profileId, DateTimeOffset maxAge = default)
         {
             Guid.TryParse(profileId, out Guid parsedProfile);
             Guid.TryParse(userId, out Guid parsedUserId);
+            _logger.LogInformation($"Getting profile {parsedProfile} for user {parsedUserId}, maxAge: {maxAge}");
             Response.ContentType = "application/json"; // the header triggers automatic serialization
-            return JsonSerializer.Deserialize<object>(await cacheService.GetProfileJson(parsedUserId, parsedProfile));
+            return JsonSerializer.Deserialize<object>(await cacheService.GetProfileJson(parsedUserId, parsedProfile, maxAge));
         }
         [HttpGet]
         [Route("{userId}/{profileId}/museum")]
