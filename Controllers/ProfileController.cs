@@ -64,9 +64,9 @@ namespace Sky.PlayerInfo.Controllers
 
         [HttpGet]
         [Route("{userId}")]
-        public Task<ProfileRoot> GetProfiles(string userId)
+        public Task<ProfileRoot> GetProfiles(string userId, DateTimeOffset maxAge = default)
         {
-            return profileServie.GetProfiles(userId);
+            return profileServie.GetProfiles(userId, maxAge);
         }
 
         [HttpGet]

@@ -184,7 +184,7 @@ public class CacheService
         var activeProfile = activeProfiles.Where(p => p.PlayerId == Guid.Parse(playerId)).FirstOrDefault().Execute();
         if (activeProfile == null)
         {
-            await GetProfileJson(Guid.Parse(playerId), Guid.Empty);
+            await GetProfileJson(Guid.Parse(playerId), Guid.Empty, DateTime.UtcNow.AddDays(-1));
             activeProfile = activeProfiles.Where(p => p.PlayerId == Guid.Parse(playerId)).FirstOrDefault().Execute();
         }
         return activeProfile.ProfileId.ToString();

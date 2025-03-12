@@ -61,9 +61,9 @@ namespace Sky.PlayerInfo.Service
             return string.Join("_", name.Split('_').Reverse().Skip(1).Reverse());
         }
 
-        public async Task<ProfileRoot> GetProfiles(string playerId)
+        public async Task<ProfileRoot> GetProfiles(string playerId, DateTimeOffset maxAge = default)
         {
-            var hypixelResponse = await cacheService.GetProfileData(Guid.Parse(playerId));
+            var hypixelResponse = await cacheService.GetProfileData(Guid.Parse(playerId), maxAge);
             try
             {
                 var root = new ProfileRoot();
