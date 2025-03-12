@@ -34,14 +34,6 @@ namespace Sky.PlayerInfo
             {
                 option.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault;
             });
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v0", new OpenApiInfo { Title = "SkyPlayerInfo", Version = "v1" });
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "SkyPlayerInfo", Version = "v1.0" });
-
-
-
-            });
             services.AddStackExchangeRedisCache(options =>
             {
                 var stringConfig = Configuration["redis_host"];
