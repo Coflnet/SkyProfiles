@@ -93,7 +93,15 @@ namespace Sky.PlayerInfo.Controllers
         public async Task<Dictionary<string, SlayerElem>> GetProfileSlayers(string userId, string profileId)
         {
             var data = await profileServie.GetSlayer(userId, profileId);
-            return data.Select(c => (c.Key, new SlayerElem() { Level = new SlayerElem.SlayerLvl() { currentLevel = int.Parse(c.Value.claimed_levels.LastOrDefault().Key?.Split('_').LastOrDefault() ?? "0") } })).ToDictionary(c => c.Key, c => c.Item2);
+            return data.Select(c => (c.Key, new SlayerElem()
+            {
+                Level = new SlayerElem.SlayerLvl()
+                {
+                    // zombie slayer level 7 is called level_7_special so the shortest part is the level
+                    currentLevel = int.Parse(c.Value.claimed_levels.LastOrDefault().Key?.Split('_').Where(p => p.Length <= 2).LastOrDefault() ?? "0")
+                }
+            }))
+                .ToDictionary(c => c.Key, c => c.Item2);
         }
 
         [HttpGet]
