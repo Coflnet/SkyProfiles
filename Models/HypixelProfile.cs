@@ -382,6 +382,8 @@ public class _0
         public PlayerData player_data { get; set; }
         [JsonPropertyName("mining_core")]
         public MiningCore mining_core { get; set; }
+        [JsonPropertyName("profile")]
+        public ProfileJoin profile { get; set; }
 
 /*
         [JsonPropertyName("accessory_bag_storage")]
@@ -400,8 +402,6 @@ public class _0
         [JsonPropertyName("dungeons")]
         public Dungeons dungeons { get; set; }
 
-        [JsonPropertyName("profile")]
-        public Profile profile { get; set; }
 
         [JsonPropertyName("pets_data")]
         public PetsData pets_data { get; set; }
@@ -11096,7 +11096,7 @@ public class _0
         public long? created_at { get; set; }
     }
 
-    public class Profile2
+    public class ProfileJoin
     {
         [JsonPropertyName("first_join")]
         public object first_join { get; set; }
@@ -11106,13 +11106,22 @@ public class _0
 
         [JsonPropertyName("coop_invitation")]
         public CoopInvitation coop_invitation { get; set; }
+        [JsonPropertyName("deletion_notice")]
+        public DeletionNotice deletion_notice { get; set; }
+            
+    }
+    
+    public class DeletionNotice
+    {
+        [JsonPropertyName("deletion_notice")]
+        public double deletion_notice { get; set; }
     }
 
     public class Queen
-    {
-        [JsonPropertyName("talked_to")]
-        public bool talked_to { get; set; }
-    }
+{
+    [JsonPropertyName("talked_to")]
+    public bool talked_to { get; set; }
+}
 
     public class QueenMismyla
     {

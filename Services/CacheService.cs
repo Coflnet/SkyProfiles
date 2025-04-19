@@ -110,7 +110,9 @@ public class CacheService
             {
                 foreach (var member in profile.members.Keys)
                 {
-                    profile.members[member] = null;
+                    var copy = new Member();
+                    copy.profile = profile.members[member].profile;
+                    profile.members[member] = copy;
                 }
                 var serializedProfile = JsonSerializer.Serialize(profile);
                 var overallEntry = new ProfileEntry()
