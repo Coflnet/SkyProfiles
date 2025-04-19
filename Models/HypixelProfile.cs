@@ -11113,8 +11113,8 @@ public class _0
     
     public class DeletionNotice
     {
-        [JsonPropertyName("deletion_notice")]
-        public double deletion_notice { get; set; }
+        [JsonPropertyName("timestamp")]
+        public long timestamp { get; set; }
     }
 
     public class Queen
