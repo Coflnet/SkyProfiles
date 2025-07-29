@@ -98,11 +98,11 @@ namespace Sky.PlayerInfo.Service
         private async Task GetProfileStats(string uuid, string profileId)
         {
             var memberProfile = await GetFullResponse(uuid, profileId);
-            Console.WriteLine("Saving " + profileId + " " + JsonSerializer.Serialize(memberProfile.slayer?.slayer_bosses));
+            Console.WriteLine("Saving " + profileId + " " + JsonSerializer.Serialize(memberProfile.slayer?.slayer_bosses ?? new()));
             await Task.WhenAll(
                 Save(GetKey("items", profileId), JsonSerializer.SerializeToUtf8Bytes(memberProfile.item_data)),
                 Save(GetKey("collections", profileId), JsonSerializer.SerializeToUtf8Bytes(memberProfile.player_data.unlocked_coll_tiers)),
-                Save(GetKey("slayer_boss", profileId), JsonSerializer.SerializeToUtf8Bytes(memberProfile.slayer?.slayer_bosses)),
+                Save(GetKey("slayer_boss", profileId), JsonSerializer.SerializeToUtf8Bytes(memberProfile.slayer?.slayer_bosses ?? new())),
                 Save(GetKey("forge", profileId), JsonSerializer.SerializeToUtf8Bytes(GetForgeDetails(memberProfile)))
             // Save(GetKey("raw", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.Value.Raw))
             );
