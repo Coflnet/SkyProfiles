@@ -5,13 +5,15 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
     <GenerateProgramFile>false</GenerateProgramFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../dev/hypixel.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Coflnet.Core" Version="0.5.1" />
+    <PackageReference Include="Coflnet.Core" Version="0.6.0" />
     <PackageReference Include="Coflnet.Sky.Proxy.Client" Version="0.1.2" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
   </ItemGroup>
