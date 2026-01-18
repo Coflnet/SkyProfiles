@@ -39,11 +39,15 @@ namespace Sky.PlayerInfo.Service
         {
             profileId = await MapProfileId(playerId, profileId);
             var unlockedList = await GetOrLoad<List<string>>(GetKey("collections", profileId), playerId, profileId);
+            if (unlockedList == null)
+                return new Dictionary<string, CollectionItem>();
             return ConvertCollections(unlockedList);
         }
 
         private Dictionary<string, CollectionItem> ConvertCollections(List<string> unlockedList)
         {
+            if (unlockedList == null || unlockedList.Count == 0)
+                return new Dictionary<string, CollectionItem>();
             return unlockedList.Select(c => (GetCollectionName(c), // name without level at the end
                  new CollectionItem() { Tier = int.Parse(c.Split('_').Last()) })).GroupBy(c => c.Item1).ToDictionary(c => c.Key, c => c.OrderByDescending(c => c.Item2.Tier).First().Item2);
         }
