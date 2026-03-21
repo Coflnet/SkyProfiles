@@ -111,6 +111,14 @@ namespace Sky.PlayerInfo.Controllers
             return await profileServie.GetForgeData(userId, profileId);
         }
 
+        [HttpGet]
+        [Route("{userId}/{profileId}/data/greenhouse")]
+        public async Task<GreenhouseData> GetProfileGreenhouse(string userId, string profileId)
+        {
+            _logger.LogInformation("Getting greenhouse data for {UserId} profile {ProfileId}", userId, profileId);
+            return await profileServie.GetGreenhouseData(userId, profileId);
+        }
+
 
         public class SlayerElem
         {

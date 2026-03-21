@@ -107,9 +107,23 @@ namespace Sky.PlayerInfo.Service
                 Save(GetKey("items", profileId), JsonSerializer.SerializeToUtf8Bytes(memberProfile.item_data)),
                 Save(GetKey("collections", profileId), JsonSerializer.SerializeToUtf8Bytes(memberProfile.player_data.unlocked_coll_tiers)),
                 Save(GetKey("slayer_boss", profileId), JsonSerializer.SerializeToUtf8Bytes(memberProfile.slayer?.slayer_bosses ?? new())),
-                Save(GetKey("forge", profileId), JsonSerializer.SerializeToUtf8Bytes(GetForgeDetails(memberProfile)))
-            // Save(GetKey("raw", item.profile_id), JsonSerializer.SerializeToUtf8Bytes(item.Value.Raw))
+                Save(GetKey("forge", profileId), JsonSerializer.SerializeToUtf8Bytes(GetForgeDetails(memberProfile))),
+                Save(GetKey("greenhouse", profileId), JsonSerializer.SerializeToUtf8Bytes(GetGreenhouseData(memberProfile)))
             );
+        }
+
+        private static GreenhouseData GetGreenhouseData(Coflnet.Sky.PlayerInfo.Models.Hypixel.Member member)
+        {
+            return new GreenhouseData
+            {
+                DiscoveredCrops = member.garden_player_data?.discovered_greenhouse_crops ?? new List<string>()
+            };
+        }
+
+        public async Task<GreenhouseData> GetGreenhouseData(string playerId, string profileId)
+        {
+            profileId = await MapProfileId(playerId, profileId);
+            return await GetOrLoad<GreenhouseData>(GetKey("greenhouse", profileId), playerId, profileId);
         }
 
         private ForgeData GetForgeDetails(Coflnet.Sky.PlayerInfo.Models.Hypixel.Member member)
@@ -178,6 +192,11 @@ namespace Sky.PlayerInfo.Service
         public int HotMLevel { get; set; }
         public float QuickForgeSpeed { get; set; }
         public Dictionary<string, int> CollectionLevels { get; set; }
+    }
+
+    public class GreenhouseData
+    {
+        public List<string> DiscoveredCrops { get; set; } = new();
     }
 
     public class MappingConstants

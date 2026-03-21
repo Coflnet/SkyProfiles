@@ -447,6 +447,87 @@ public class _0
 
         [JsonPropertyName("collection")]
         public Collection collection { get; set; }
+
+        [JsonPropertyName("garden_player_data")]
+        public GardenPlayerData garden_player_data { get; set; }
+
+        [JsonPropertyName("foraging")]
+        public ForagingData foraging { get; set; }
+    }
+
+    public class GardenPlayerData
+    {
+        [JsonPropertyName("copper")]
+        public int copper { get; set; }
+
+        [JsonPropertyName("analyzed_greenhouse_crops")]
+        public List<string> analyzed_greenhouse_crops { get; set; }
+
+        [JsonPropertyName("discovered_greenhouse_crops")]
+        public List<string> discovered_greenhouse_crops { get; set; }
+    }
+
+    public class ForagingData
+    {
+        [JsonPropertyName("starlyn")]
+        public ForagingStarlyn starlyn { get; set; }
+
+        [JsonPropertyName("fish_family")]
+        public List<string> fish_family { get; set; }
+
+        [JsonPropertyName("hina")]
+        public ForagingHina hina { get; set; }
+
+        [JsonPropertyName("tree_gifts")]
+        public ForagingTreeGifts tree_gifts { get; set; }
+
+        [JsonPropertyName("songs")]
+        public ForagingSongs songs { get; set; }
+    }
+
+    public class ForagingStarlyn
+    {
+        [JsonPropertyName("personal_bests")]
+        public Dictionary<string, long> personal_bests { get; set; }
+    }
+
+    public class ForagingHina
+    {
+        [JsonPropertyName("tasks")]
+        public ForagingHinaTasks tasks { get; set; }
+    }
+
+    public class ForagingHinaTasks
+    {
+        [JsonPropertyName("task_progress")]
+        public Dictionary<string, long> task_progress { get; set; }
+
+        [JsonPropertyName("completed_tasks")]
+        public List<string> completed_tasks { get; set; }
+
+        [JsonPropertyName("claimed_rewards")]
+        public List<string> claimed_rewards { get; set; }
+
+        [JsonPropertyName("tier_claimed")]
+        public int tier_claimed { get; set; }
+    }
+
+    public class ForagingTreeGifts
+    {
+        [JsonPropertyName("FIG")]
+        public int? FIG { get; set; }
+
+        [JsonPropertyName("MANGROVE")]
+        public int? MANGROVE { get; set; }
+
+        [JsonPropertyName("milestone_tier_claimed")]
+        public Dictionary<string, int> milestone_tier_claimed { get; set; }
+    }
+
+    public class ForagingSongs
+    {
+        [JsonPropertyName("harp")]
+        public Dictionary<string, object> harp { get; set; }
     }
 
     public class _128726MELON
