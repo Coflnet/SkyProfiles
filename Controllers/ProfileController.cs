@@ -113,10 +113,10 @@ namespace Sky.PlayerInfo.Controllers
 
         [HttpGet]
         [Route("{userId}/{profileId}/data/greenhouse")]
-        public async Task<GreenhouseData> GetProfileGreenhouse(string userId, string profileId)
+        public async Task<GreenhouseData> GetProfileGreenhouse(string userId, string profileId, bool forceRefresh = false)
         {
-            _logger.LogInformation("Getting greenhouse data for {UserId} profile {ProfileId}", userId, profileId);
-            return await profileServie.GetGreenhouseData(userId, profileId);
+            _logger.LogInformation("Getting greenhouse data for {UserId} profile {ProfileId}, forceRefresh: {ForceRefresh}", userId, profileId, forceRefresh);
+            return await profileServie.GetGreenhouseData(userId, profileId, forceRefresh);
         }
 
 

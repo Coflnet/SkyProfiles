@@ -120,10 +120,16 @@ namespace Sky.PlayerInfo.Service
             };
         }
 
-        public async Task<GreenhouseData> GetGreenhouseData(string playerId, string profileId)
+        public async Task<GreenhouseData> GetGreenhouseData(string playerId, string profileId, bool forceRefresh = false)
         {
             profileId = await MapProfileId(playerId, profileId);
-            return await GetOrLoad<GreenhouseData>(GetKey("greenhouse", profileId), playerId, profileId);
+            var key = GetKey("greenhouse", profileId);
+            if (forceRefresh)
+            {
+                await distributedCache.RemoveAsync(key);
+                Console.WriteLine($"Cache invalidated for {key}");
+            }
+            return await GetOrLoad<GreenhouseData>(key, playerId, profileId);
         }
 
         private ForgeData GetForgeDetails(Coflnet.Sky.PlayerInfo.Models.Hypixel.Member member)
