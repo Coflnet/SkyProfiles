@@ -114,6 +114,7 @@ namespace Sky.PlayerInfo.Service
 
         private static GreenhouseData GetGreenhouseData(Coflnet.Sky.PlayerInfo.Models.Hypixel.Member member)
         {
+            Console.WriteLine($"Garden data: {Newtonsoft.Json.JsonConvert.SerializeObject(member.garden_player_data)}");
             return new GreenhouseData
             {
                 DiscoveredCrops = member.garden_player_data?.discovered_greenhouse_crops ?? new List<string>()
