@@ -99,9 +99,9 @@ namespace Sky.PlayerInfo.Service
             return profileId;
         }
 
-        private async Task GetProfileStats(string uuid, string profileId)
+        private async Task GetProfileStats(string uuid, string profileId, bool forceRefresh = false)
         {
-            var memberProfile = await GetFullResponse(uuid, profileId);
+            var memberProfile = await GetFullResponse(uuid, profileId, forceRefresh);
             Console.WriteLine("Saving " + profileId + " " + JsonSerializer.Serialize(memberProfile.slayer?.slayer_bosses ?? new()));
             await Task.WhenAll(
                 Save(GetKey("items", profileId), JsonSerializer.SerializeToUtf8Bytes(memberProfile.item_data)),
@@ -129,7 +129,7 @@ namespace Sky.PlayerInfo.Service
                 await distributedCache.RemoveAsync(key);
                 Console.WriteLine($"Cache invalidated for {key}");
             }
-            return await GetOrLoad<GreenhouseData>(key, playerId, profileId);
+            return await GetOrLoad<GreenhouseData>(key, playerId, profileId, forceRefresh);
         }
 
         private ForgeData GetForgeDetails(Coflnet.Sky.PlayerInfo.Models.Hypixel.Member member)
@@ -165,12 +165,12 @@ namespace Sky.PlayerInfo.Service
             return await GetOrLoad<ForgeData>(GetKey("forge", profileId), playerId, profileId);
         }
 
-        private async Task<T> GetOrLoad<T>(string key, string userId, string profileId)
+        private async Task<T> GetOrLoad<T>(string key, string userId, string profileId, bool forceRefresh = false)
         {
             var data = await distributedCache.GetAsync(key);
             if (data == null || System.Text.Encoding.UTF8.GetString(data) == "null")
             {
-                await GetProfileStats(userId, profileId);
+                await GetProfileStats(userId, profileId, forceRefresh);
                 data = await distributedCache.GetAsync(key);
             }
             Console.WriteLine($"loaded {key} {System.Text.Encoding.UTF8.GetString(data).Truncate(100)}");
@@ -185,10 +185,11 @@ namespace Sky.PlayerInfo.Service
             return "p" + part + profileId;
         }
 
-        public async Task<Coflnet.Sky.PlayerInfo.Models.Hypixel.Member> GetFullResponse(string uuid, string profileId)
+        public async Task<Coflnet.Sky.PlayerInfo.Models.Hypixel.Member> GetFullResponse(string uuid, string profileId, bool forceRefresh = false)
         {
             Guid.TryParse(profileId, out var guid);
-            var response = await cacheService.GetProfileJson(Guid.Parse(uuid), guid, DateTime.UtcNow.AddDays(-7));
+            var maxAge = forceRefresh ? DateTime.UtcNow.AddMinutes(-10) : DateTime.UtcNow.AddDays(-7);
+            var response = await cacheService.GetProfileJson(Guid.Parse(uuid), guid, maxAge);
             return JsonSerializer.Deserialize<Coflnet.Sky.PlayerInfo.Models.Hypixel.Member>(response);
         }
     }
