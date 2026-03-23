@@ -186,6 +186,42 @@ namespace Sky.PlayerInfo.Service
             return "p" + part + profileId;
         }
 
+        public async Task<object> GetGreenhouseDebugData(string playerId, string profileId, bool forceRefresh = false)
+        {
+            profileId = await MapProfileId(playerId, profileId);
+            var key = GetKey("greenhouse", profileId);
+            
+            var rawJsonString = await GetFullRawResponse(playerId, profileId, forceRefresh);
+            var fullDeserilizedProfile = JsonSerializer.Deserialize<Coflnet.Sky.PlayerInfo.Models.Hypixel.Member>(rawJsonString);
+            var generatedGreenhouseData = GetGreenhouseData(fullDeserilizedProfile);
+
+            var generatedGreenhouseDataBytes = JsonSerializer.SerializeToUtf8Bytes(generatedGreenhouseData);
+
+            var dbCachedBytes = await distributedCache.GetAsync(key);
+            var deserializedFromCache = dbCachedBytes != null ? JsonSerializer.Deserialize<GreenhouseData>(dbCachedBytes, new JsonSerializerOptions()
+            {
+                NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString
+            }) : null;
+
+            return new 
+            {
+                Key = key,
+                RawJsonContainsDiscoveredCrops = rawJsonString.Contains("discovered_greenhouse_crops"),
+                DeserializedCrops = fullDeserilizedProfile?.garden_player_data?.discovered_greenhouse_crops,
+                GeneratedGreenhouseData = generatedGreenhouseData,
+                GeneratedBytesString = System.Text.Encoding.UTF8.GetString(generatedGreenhouseDataBytes),
+                DbCachedBytesString = dbCachedBytes != null ? System.Text.Encoding.UTF8.GetString(dbCachedBytes) : null,
+                DeserializedFromCache = deserializedFromCache
+            };
+        }
+
+        public async Task<string> GetFullRawResponse(string uuid, string profileId, bool forceRefresh = false)
+        {
+            Guid.TryParse(profileId, out var guid);
+            var maxAge = forceRefresh ? DateTime.UtcNow.AddMinutes(-10) : DateTime.UtcNow.AddDays(-7);
+            return await cacheService.GetProfileJson(Guid.Parse(uuid), guid, maxAge);
+        }
+
         public async Task<Coflnet.Sky.PlayerInfo.Models.Hypixel.Member> GetFullResponse(string uuid, string profileId, bool forceRefresh = false)
         {
             Guid.TryParse(profileId, out var guid);

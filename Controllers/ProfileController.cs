@@ -112,6 +112,22 @@ namespace Sky.PlayerInfo.Controllers
         }
 
         [HttpGet]
+        [Route("{userId}/{profileId}/data/full")]
+        public async Task<IActionResult> GetProfileFull(string userId, string profileId, bool forceRefresh = false)
+        {
+            var raw = await profileServie.GetFullRawResponse(userId, profileId, forceRefresh);
+            return Content(raw, "application/json");
+        }
+
+        [HttpGet]
+        [Route("{userId}/{profileId}/data/greenhouse/debug")]
+        public async Task<IActionResult> GetGreenhouseDebug(string userId, string profileId, bool forceRefresh = false)
+        {
+            var raw = await profileServie.GetGreenhouseDebugData(userId, profileId, forceRefresh);
+            return Ok(raw);
+        }
+
+        [HttpGet]
         [Route("{userId}/{profileId}/data/greenhouse")]
         public async Task<GreenhouseData> GetProfileGreenhouse(string userId, string profileId, bool forceRefresh = false)
         {
