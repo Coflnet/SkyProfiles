@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Cassandra;
 using Cassandra.Data.Linq;
 using Cassandra.Mapping;
+using Coflnet.Sky.Core;
 using Coflnet.Sky.PlayerInfo.Models.Hypixel;
 using Coflnet.Sky.Proxy.Client.Api;
 using Microsoft.Extensions.Configuration;
@@ -79,7 +80,8 @@ public class CacheService
                 Console.WriteLine($"Using active profile {profileId}");
             }
         }
-        var entry = await profiles.Where(p => p.ProfileId == profileId && p.Part == playerId && p.LastChange > maxAge).FirstOrDefault().ExecuteAsync();
+        var nowSafe = DateTimeOffset.UtcNow.AddHours(1);
+        var entry = await profiles.Where(p => p.ProfileId == profileId && p.Part == playerId && p.LastChange > maxAge && p.LastChange < nowSafe).FirstOrDefault().ExecuteAsync();
         if (entry == null)
         {
             if (playerId == Guid.Empty)
@@ -140,15 +142,16 @@ public class CacheService
                     profileId = Guid.Parse(selected.profile_id);
                 }
             }
-            entry = await profiles.Where(p => p.ProfileId == profileId && p.Part == playerId).FirstOrDefault().ExecuteAsync();
+            entry = await profiles.Where(p => p.ProfileId == profileId && p.Part == playerId && p.LastChange < nowSafe).FirstOrDefault().ExecuteAsync();
         }
-        return entry.Data;
+        return entry?.Data;
     }
 
     private static DateTimeOffset GetHighestTimestamp(string playerData)
     {
-        var timestamps = Regex.Matches(playerData, "\"timestamp\":(\\d+)").Select(t => long.Parse(t.Groups[1].Value));
-        var lastChange = DateTimeOffset.FromUnixTimeMilliseconds(timestamps.DefaultIfEmpty(0).Max());
+        var timestamps = Regex.Matches(playerData, "\"(?:timestamp|last_[a-zA-Z_]+|completed_at|created_at)\"\\s*:\\s*(\\d+)").Select(t => long.Parse(t.Groups[1].Value));
+        var minimumTime = new DateTimeOffset(DateTime.UtcNow.AddDays(-10).Date.RoundDown(TimeSpan.FromDays(30))).ToUnixTimeMilliseconds();
+        var lastChange = DateTimeOffset.FromUnixTimeMilliseconds(timestamps.DefaultIfEmpty(0).Append(minimumTime).Where(t => t <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()).Max());
         return lastChange;
     }
 
