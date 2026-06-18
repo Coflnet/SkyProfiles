@@ -59,6 +59,7 @@ namespace Sky.PlayerInfo
             {
                 p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
             }));
+            services.AddJaeger(Configuration, 0.001);
             services.AddCoflnetCore();
         }
 
