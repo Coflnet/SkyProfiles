@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 as build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /build
 RUN git clone --depth=1 https://github.com/Coflnet/HypixelSkyblock.git dev
 WORKDIR /build/sky
@@ -6,16 +6,20 @@ COPY SkyPlayerInfo.csproj SkyPlayerInfo.csproj
 RUN dotnet restore
 COPY . .
 RUN dotnet test
-RUN dotnet publish -c release -o /app
+RUN dotnet publish -c release -o /app /p:UseAppHost=false /p:PublishReadyToRun=true
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra
 WORKDIR /app
 
-COPY --from=build /app .
+COPY --from=build --chown=$APP_UID:$APP_UID /app .
 
-ENV ASPNETCORE_URLS=http://+:8000
-# using a non-root user is a best practice for security related execution. 
-RUN useradd --uid $(shuf -i 2000-65000 -n 1) app-user
-USER app-user
+ENV ASPNETCORE_URLS=http://+:8000 \
+    DOTNET_EnableDiagnostics=0 \
+    COMPlus_EnableDiagnostics=0 \
+    DOTNET_RUNNING_IN_CONTAINER=true \
+    HOME=/tmp \
+    TMPDIR=/tmp
+
+USER $APP_UID
 
 ENTRYPOINT ["dotnet", "SkyPlayerInfo.dll", "--hostBuilder:reloadConfigOnChange=false"]
