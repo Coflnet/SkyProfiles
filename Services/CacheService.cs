@@ -181,7 +181,12 @@ public class CacheService
 
     private async Task<string> Proxy(string path)
     {
-        return JsonSerializer.Deserialize<string>(await proxyApi.ProxyHypixelGetAsync(path));
+        var data = await proxyApi.ProxyHypixelGetAsync(path);
+        if(data[0] == '{')
+        {
+            return data;
+        }
+        return JsonSerializer.Deserialize<string>(data);
     }
 
     internal async Task<string> GetActiveProfile(string playerId)
