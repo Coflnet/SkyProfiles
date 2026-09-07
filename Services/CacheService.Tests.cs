@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Cassandra;
 using Coflnet.Sky.Proxy.Client.Api;
@@ -20,7 +21,7 @@ public class CacheServiceTests
     [Test]
     public async Task RefreshPreservesLastKnownData(
         [Values("museum", "profile", "player")] string kind,
-        [Values("transport", "rejected", "malformed", "fresh", "missing")] string scenario)
+        [Values("transport", "rejected", "malformed", "cancelled", "fresh", "missing")] string scenario)
     {
         using var cluster = Cluster.Builder().AddContactPoint("127.0.0.1").Build();
         var clusterMock = new Mock<ICluster>();
@@ -61,9 +62,10 @@ public class CacheServiceTests
             }));
         });
         var proxy = new Mock<IProxyApi>();
-        var upstream = proxy.Setup(p => p.ProxyHypixelGetAsync(It.IsAny<string>()));
+        var upstream = proxy.Setup(p => p.ProxyHypixelGetAsync(It.IsAny<string>(), It.IsAny<int>(), It.Is<CancellationToken>(t => t.CanBeCanceled)));
         if (scenario == "rejected") upstream.ReturnsAsync("{\"success\":false,\"cause\":\"API disabled\"}");
         else if (scenario == "malformed") upstream.ReturnsAsync("\"upstream unavailable\"");
+        else if (scenario == "cancelled") upstream.ThrowsAsync(new TaskCanceledException("Refresh timed out"));
         else upstream.ThrowsAsync(new HttpRequestException("API unavailable"));
         var cache = new CacheService(new ConfigurationBuilder().Build(), proxy.Object, session.Object);
         var freshAfter = DateTimeOffset.UtcNow.AddMinutes(-2);
@@ -82,7 +84,7 @@ public class CacheServiceTests
             Assert.That(await cache.GetProfileJson(player, profile, freshAfter), Is.EqualTo(data));
         else
             Assert.That((await cache.GetProfileData(player, freshAfter)).lastLogout, Is.EqualTo(42));
-        proxy.Verify(p => p.ProxyHypixelGetAsync(It.IsAny<string>()), scenario == "fresh" ? Times.Never() : Times.Once());
+        proxy.Verify(p => p.ProxyHypixelGetAsync(It.IsAny<string>(), It.IsAny<int>(), It.Is<CancellationToken>(t => t.CanBeCanceled)), scenario == "fresh" ? Times.Never() : Times.Once());
     }
 
     private class CachedRows : RowSet

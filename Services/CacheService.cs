@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Cassandra;
 using Cassandra.Data.Linq;
@@ -197,7 +198,8 @@ public class CacheService
 
     private async Task<string> Proxy(string path)
     {
-        var data = await proxyApi.ProxyHypixelGetAsync(path);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var data = await proxyApi.ProxyHypixelGetAsync(path, cancellationToken: timeout.Token);
         if (data[0] != '{')
             data = JsonSerializer.Deserialize<string>(data);
         using var parsed = JsonDocument.Parse(data);
