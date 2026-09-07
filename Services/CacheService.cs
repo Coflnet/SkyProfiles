@@ -81,14 +81,22 @@ public class CacheService
             }
         }
         var nowSafe = DateTimeOffset.UtcNow.AddHours(1);
-        var entry = await profiles.Where(p => p.ProfileId == profileId && p.Part == playerId && p.LastChange > maxAge && p.LastChange < nowSafe).FirstOrDefault().ExecuteAsync();
-        if (entry == null)
+        var entry = await profiles.Where(p => p.ProfileId == profileId && p.Part == playerId && p.LastChange < nowSafe).FirstOrDefault().ExecuteAsync();
+        if (entry == null || entry.LastChange <= maxAge)
         {
             if (playerId == Guid.Empty)
             {
-                return null;
+                return entry?.Data;
             }
-            var response = await GetResponseForPlayer(playerId.ToString());
+            string response;
+            try
+            {
+                response = await GetResponseForPlayer(playerId.ToString());
+            }
+            catch when (entry != null)
+            {
+                return entry.Data;
+            }
             var members = JsonSerializer.Deserialize<ProfileResponse>(response);
             foreach (var profile in members.profiles)
             {
@@ -162,7 +170,15 @@ public class CacheService
         {
             return JsonSerializer.Deserialize<Coflnet.Sky.PlayerInfo.Models.HypixelProfile.Root>(latest.Content).player;
         }
-        var response = await Proxy($"/v2/player?uuid={playerId}");
+        string response;
+        try
+        {
+            response = await Proxy($"/v2/player?uuid={playerId}");
+        }
+        catch when (latest != null)
+        {
+            return JsonSerializer.Deserialize<Coflnet.Sky.PlayerInfo.Models.HypixelProfile.Root>(latest.Content).player;
+        }
         var profile = JsonSerializer.Deserialize<Coflnet.Sky.PlayerInfo.Models.HypixelProfile.Root>(response);
         await hypixelProfiles.Insert(new HypixelProfile()
         {
@@ -182,11 +198,12 @@ public class CacheService
     private async Task<string> Proxy(string path)
     {
         var data = await proxyApi.ProxyHypixelGetAsync(path);
-        if(data[0] == '{')
-        {
-            return data;
-        }
-        return JsonSerializer.Deserialize<string>(data);
+        if (data[0] != '{')
+            data = JsonSerializer.Deserialize<string>(data);
+        using var parsed = JsonDocument.Parse(data);
+        if (parsed.RootElement.TryGetProperty("success", out var success) && success.ValueKind == JsonValueKind.False)
+            throw new InvalidOperationException("Hypixel profile refresh was unsuccessful");
+        return data;
     }
 
     internal async Task<string> GetActiveProfile(string playerId)
@@ -204,12 +221,20 @@ public class CacheService
     {
         if (parsedProfile == default)
             parsedProfile = Guid.Parse(await GetActiveProfile(parsedUserId.ToString("n")));
-        var profile = await museumProfiles.Where(p => p.ProfileId == parsedProfile && p.PlayerId == parsedUserId && p.SavedAt > after).FirstOrDefault().ExecuteAsync();
-        if (profile != null)
+        var profile = await museumProfiles.Where(p => p.ProfileId == parsedProfile && p.PlayerId == parsedUserId).FirstOrDefault().ExecuteAsync();
+        if (profile != null && profile.SavedAt > after)
         {
             return JsonSerializer.Deserialize<Models.Museum.Player>(profile.Content);
         }
-        var response = await Proxy($"/v2/skyblock/museum?profile={parsedProfile:n}");
+        string response;
+        try
+        {
+            response = await Proxy($"/v2/skyblock/museum?profile={parsedProfile:n}");
+        }
+        catch when (profile != null)
+        {
+            return JsonSerializer.Deserialize<Models.Museum.Player>(profile.Content);
+        }
         var parsed = JsonSerializer.Deserialize<Models.Museum.MuseumRoot>(response);
         var player = parsed.members.FirstOrDefault(p => p.Key == parsedUserId.ToString("n"));
         foreach (var item in parsed.members)
