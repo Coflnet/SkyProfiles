@@ -21,6 +21,11 @@ namespace Sky.PlayerInfo.Service
 
         IDistributedCache distributedCache;
 
+        /// <summary>
+        /// Oldest profile data that is served without a refresh, applies to the raw profile and the entries derived from it
+        /// </summary>
+        public static readonly TimeSpan MaxCacheAge = TimeSpan.FromHours(3);
+
         public ProfileServie(IDistributedCache distributedCache, IConfiguration config, IProxyApi proxyApi, CacheService cacheService)
         {
             this.distributedCache = distributedCache;
@@ -133,22 +138,39 @@ namespace Sky.PlayerInfo.Service
             return await GetOrLoad<GreenhouseData>(key, playerId, profileId, forceRefresh);
         }
 
+        /// <summary>
+        /// Heart of the Mountain level of a member. Hypixel moved the experience from
+        /// mining_core.experience to skill_tree.experience.mining, the old field is only a fallback for older profiles.
+        /// </summary>
+        public static int GetHotMLevel(Coflnet.Sky.PlayerInfo.Models.Hypixel.Member member)
+        {
+            return GetHotMLevel(member.skill_tree?.experience?.mining ?? member.mining_core?.experience);
+        }
+
+        /// <summary>
+        /// Converts cumulative Heart of the Mountain experience to its level.
+        /// Missing or zero experience is level 1 (the lowest level), experience beyond the last threshold is the max level.
+        /// </summary>
+        public static int GetHotMLevel(double? experience)
+        {
+            var level = 1;
+            var expRequired = 0.0;
+            foreach (var item in MappingConstants.HotMexpToLevel.OrderBy(c => c.Key))
+            {
+                expRequired += item.Value;
+                if (experience >= expRequired)
+                    level = item.Key;
+                else
+                    break;
+            }
+            return level;
+        }
+
         private ForgeData GetForgeDetails(Coflnet.Sky.PlayerInfo.Models.Hypixel.Member member)
         {
             var data = new ForgeData();
             var collections = ConvertCollections(member.player_data.unlocked_coll_tiers).ToDictionary(c => c.Key, c => (int)c.Value.Tier);
-            var expRequired = 0;
-            foreach (var item in MappingConstants.HotMexpToLevel)
-            {
-                if (expRequired + item.Value > member.mining_core?.experience)
-                {
-                    data.HotMLevel = item.Key - 1;
-                    break;
-                }
-                expRequired += item.Value;
-            }
-            Console.WriteLine($"HotMLevel {data.HotMLevel} {member.mining_core?.experience}");
-            //data.HotMLevel = MappingConstants.HotMexpToLevel.Where(c => member.mining_core?.experience >= c.Value).Select(c=>c.Key).DefaultIfEmpty(0).Max(c => c);
+            data.HotMLevel = GetHotMLevel(member);
             if (member.mining_core?.nodes?.forge_time != null && member.mining_core.nodes.forge_time <= 20)
                 data.QuickForgeSpeed = MappingConstants.QuickForgeToPercent[member.mining_core.nodes.forge_time.Value];
             data.CollectionLevels = collections;
@@ -157,7 +179,7 @@ namespace Sky.PlayerInfo.Service
 
         private async Task Save(string key, byte[] data)
         {
-            await distributedCache.SetAsync(key, data, new DistributedCacheEntryOptions() { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7) });
+            await distributedCache.SetAsync(key, data, new DistributedCacheEntryOptions() { AbsoluteExpirationRelativeToNow = MaxCacheAge });
         }
 
         public async Task<ForgeData> GetForgeData(string playerId, string profileId)
@@ -183,7 +205,8 @@ namespace Sky.PlayerInfo.Service
 
         private static string GetKey(string part, string profileId)
         {
-            return "p" + part + profileId;
+            // v2: entries written before the 3 hour limit had a 7 day lifetime
+            return "p2" + part + profileId;
         }
 
         public async Task<object> GetGreenhouseDebugData(string playerId, string profileId, bool forceRefresh = false)
@@ -218,14 +241,14 @@ namespace Sky.PlayerInfo.Service
         public async Task<string> GetFullRawResponse(string uuid, string profileId, bool forceRefresh = false)
         {
             Guid.TryParse(profileId, out var guid);
-            var maxAge = forceRefresh ? DateTime.UtcNow.AddMinutes(-10) : DateTime.UtcNow.AddDays(-7);
+            var maxAge = forceRefresh ? DateTime.UtcNow.AddMinutes(-10) : DateTime.UtcNow - MaxCacheAge;
             return await cacheService.GetProfileJson(Guid.Parse(uuid), guid, maxAge);
         }
 
         public async Task<Coflnet.Sky.PlayerInfo.Models.Hypixel.Member> GetFullResponse(string uuid, string profileId, bool forceRefresh = false)
         {
             Guid.TryParse(profileId, out var guid);
-            var maxAge = forceRefresh ? DateTime.UtcNow.AddMinutes(-10) : DateTime.UtcNow.AddDays(-7);
+            var maxAge = forceRefresh ? DateTime.UtcNow.AddMinutes(-10) : DateTime.UtcNow - MaxCacheAge;
             var response = await cacheService.GetProfileJson(Guid.Parse(uuid), guid, maxAge);
             return JsonSerializer.Deserialize<Coflnet.Sky.PlayerInfo.Models.Hypixel.Member>(response);
         }

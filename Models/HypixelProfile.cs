@@ -382,6 +382,8 @@ public class _0
         public PlayerData player_data { get; set; }
         [JsonPropertyName("mining_core")]
         public MiningCore mining_core { get; set; }
+        [JsonPropertyName("skill_tree")]
+        public SkillTree skill_tree { get; set; }
         [JsonPropertyName("profile")]
         public ProfileJoin profile { get; set; }
 
@@ -10089,6 +10091,22 @@ public class _0
 
         [JsonPropertyName("total")]
         public double total { get; set; }
+    }
+
+    public class SkillTree
+    {
+        [JsonPropertyName("experience")]
+        public SkillTreeExperience experience { get; set; }
+    }
+
+    public class SkillTreeExperience
+    {
+        /// <summary>Heart of the Mountain experience (cumulative)</summary>
+        [JsonPropertyName("mining")]
+        public double? mining { get; set; }
+
+        [JsonPropertyName("foraging")]
+        public double? foraging { get; set; }
     }
 
     public class MiningCore
