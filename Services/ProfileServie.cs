@@ -73,21 +73,26 @@ namespace Sky.PlayerInfo.Service
         public async Task<ProfileRoot> GetProfiles(string playerId, DateTimeOffset maxAge = default)
         {
             var hypixelResponse = await cacheService.GetProfileData(Guid.Parse(playerId), maxAge);
-            try
-            {
-                var root = new ProfileRoot();
-                foreach (var profile in hypixelResponse.stats.SkyBlock.profiles)
-                {
-                    root.Profiles.Add(profile.Value.cute_name, profile.Value.profile_id);
-                }
+            return BuildProfileRoot(hypixelResponse);
+        }
+
+        /// <summary>
+        /// Maps the hypixel player response to the profile name/id lookup.
+        /// Players that never played skyblock have no stats/SkyBlock/profiles; they simply have no profiles.
+        /// </summary>
+        public static ProfileRoot BuildProfileRoot(Coflnet.Sky.PlayerInfo.Models.HypixelProfile.Player hypixelResponse)
+        {
+            var root = new ProfileRoot();
+            var profiles = hypixelResponse?.stats?.SkyBlock?.profiles;
+            if (profiles == null)
                 return root;
-            }
-            catch (Exception e)
+            foreach (var profile in profiles.Values)
             {
-                Console.WriteLine(e);
-                Console.WriteLine(JsonSerializer.Serialize(hypixelResponse));
-                return new ProfileRoot();
+                if (profile?.cute_name == null)
+                    continue;
+                root.Profiles[profile.cute_name] = profile.profile_id;
             }
+            return root;
         }
 
         public async Task<string> GetActiveProfile(string playerId)

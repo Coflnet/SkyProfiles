@@ -53,3 +53,24 @@ public class ProfileServieHotMTests
         LevelOf("""{"skill_tree":{"experience":{"foraging":5.0}}}""").Should().Be(1);
     }
 }
+
+public class ProfileServieProfilesTests
+{
+    [Test]
+    public void PlayerWithoutSkyblockStatsHasNoProfiles()
+    {
+        ProfileServie.BuildProfileRoot(null).Profiles.Should().BeEmpty();
+        ProfileServie.BuildProfileRoot(new()).Profiles.Should().BeEmpty();
+        ProfileServie.BuildProfileRoot(new() { stats = new() }).Profiles.Should().BeEmpty();
+        ProfileServie.BuildProfileRoot(new() { stats = new() { SkyBlock = new() } }).Profiles.Should().BeEmpty();
+    }
+
+    [Test]
+    public void MapsCuteNameToProfileId()
+    {
+        var player = JsonSerializer.Deserialize<Coflnet.Sky.PlayerInfo.Models.HypixelProfile.Player>(
+            """{"stats":{"SkyBlock":{"profiles":{"a":{"profile_id":"abc","cute_name":"Apple"},"b":{"profile_id":"def","cute_name":"Apple"}}}}}""");
+        var root = ProfileServie.BuildProfileRoot(player);
+        root.Profiles.Should().ContainKey("Apple");
+    }
+}
