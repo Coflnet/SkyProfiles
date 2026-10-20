@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Coflnet.Core" Version="0.7.3" />
-    <PackageReference Include="Coflnet.Sky.Proxy.Client" Version="1.0.0" />
+    <PackageReference Include="Coflnet.Sky.Proxy.Client" Version="1.2.0" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
   </ItemGroup>
 
