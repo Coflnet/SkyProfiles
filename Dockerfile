@@ -5,7 +5,7 @@ WORKDIR /build/sky
 COPY SkyPlayerInfo.csproj SkyPlayerInfo.csproj
 RUN dotnet restore
 COPY . .
-RUN dotnet test
+RUN dotnet test -c Debug
 RUN dotnet publish -c release -o /app /p:UseAppHost=false /p:PublishReadyToRun=true
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra

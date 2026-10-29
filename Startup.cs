@@ -11,6 +11,8 @@ using Coflnet.Sky.Core;
 using Coflnet.Sky.Proxy.Client.Api;
 using StackExchange.Redis;
 using Coflnet.Core;
+using Microsoft.AspNetCore.Http;
+using Sky.PlayerInfo.Infrastructure;
 
 namespace Sky.PlayerInfo
 {
@@ -91,6 +93,18 @@ namespace Sky.PlayerInfo
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapGet("/health/ready", async context =>
+                {
+                    try
+                    {
+                        await DatabaseReadiness.CheckAsync(context.RequestServices, context.RequestAborted);
+                        context.Response.StatusCode = StatusCodes.Status200OK;
+                    }
+                    catch (System.Exception)
+                    {
+                        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                    }
+                });
             });
         }
     }
